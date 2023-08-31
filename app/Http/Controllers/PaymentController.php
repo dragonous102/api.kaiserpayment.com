@@ -1,0 +1,230 @@
+<?php
+namespace App\Http\Controllers;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
+use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Http\JsonResponse;
+
+require_once (app_path().'/includes/api/Payment.php');
+require_once (app_path().'/includes/api/Inquiry.php');
+require_once (app_path().'/includes/api/VoidRequest.php');
+require_once (app_path().'/includes/api/Settlement.php');
+require_once (app_path().'/includes/api/Refund.php');
+require_once (app_path().'/includes/PHPGangsta/GoogleAuthenticator.php');
+
+
+class PaymentController extends Controller
+{
+  private $STATUS_LIST = array(
+    "PCPS"=>"Pre-stage",
+    "I"=>"Initial",
+    "A"=>"Approved",
+    "V"=>"Voided",
+    "S"=>"Settled",
+    "R"=>"Refund",
+    "P"=>"Pending Payment",
+    "F"=>"Rejected",
+    "E"=>"Expired",
+    "C"=>"Cancelled",
+  );
+
+  public function prePayment(Request $request)
+  {
+    $code = 200;
+    $success = false;
+    $timestamp = now()->toIso8601String();
+
+    try {
+      $host = $request->getHost();
+      $acceptedHosts = Config::get('hosts');
+      if (in_array($host, $acceptedHosts)) {
+
+        $amount = $request->input("amount");
+        $productName = $request->input("product_name");
+
+        $payment = new \Payment();
+        $response = $payment->ExecuteJose($amount, $productName, $host);
+        $respData = json_decode($response, true);
+        if (is_array($respData) && isset($respData['data'])) {
+          $success = true;
+          $body = $respData['data']['paymentPage']['paymentPageURL'];
+          $message = "paymentPageURL";
+        }
+        else {
+          $code = 500;
+          $message = "Payment Error 1";
+          $body = $response;
+        }
+      }
+      else {
+        $code = 400;
+        $message = "Payment Error 2";
+        $body = "Can not accept payment this request.";
+      }
+    }
+    catch (GuzzleException $e) {
+      $code = 500;
+      $message = "Payment Error 3";
+      $body = $e->getMessage();
+    }
+    catch (\Exception $e) {
+      $code = 500;
+      $message = "Payment Error 4";
+      $body = $e->getMessage();
+    }
+
+    return response()->json([
+      'code' => $code,
+      'success' => $success,
+      'message' => $message,
+      'timestamp' => $timestamp,
+      'body' => $body
+    ])->setStatusCode($code);
+  }
+
+  public function getReport(Request $request): JsonResponse
+  {
+    $code = 200;
+    $success = false;
+    $timestamp = now()->toIso8601String();
+    $body = array();
+
+    try {
+      $host = $request->getHost();
+      $acceptedHosts = Config::get('hosts');
+
+      if (in_array($host, $acceptedHosts)) {
+
+        $orderNo = $request->input("orderNo");
+        $fromDate = $request->input("fromDate");
+        $toDate = $request->input("toDate");
+        $email = $request->input("email");
+        $name = $request->input("name");
+        $status = $request->input("status");
+
+        if( $email == null || strlen(trim($email)) == 0 )
+          $email = null;
+        if( $name == null || strlen(trim($name)) == 0 )
+          $name = null;
+
+        $inquiry = new \Inquiry();
+        $response = $inquiry->ExecuteWithParam($orderNo, $fromDate, $toDate, $status);
+        $respData = json_decode($response, true);
+
+        if (is_array($respData) && isset($respData['data'])) {
+          $success = true;
+          $message = "report data";
+          $jdbData = $respData['data'];
+          foreach ($jdbData as $item){
+            if( $this->isContainEmail($email, $item) && $this->isContainName($name, $item)){
+              $fullName = null;
+              if($item["creditCardDetails"] != null && $item["creditCardDetails"]["cardHolderName"] != null )
+                $fullName = $item["creditCardDetails"]["cardHolderName"];
+              $emailBody = null;
+              if($item["generalPayerDetails"] != null && $item["generalPayerDetails"]["email"] != null )
+                $emailBody = $item["generalPayerDetails"]["email"];
+              $amount = $item["transactionAmount"]["amount"];
+              $fee = $this->getCustomFieldValue($item, "fee");
+              if( $fee == null )
+                $fee = 0;
+              $amount -= $fee;
+              $body[] = array(
+                "orderNo"=>$item["orderNo"],
+                "name"=>$fullName,
+                "email"=>$emailBody,
+                "date"=>$item["transactionDateTime"],
+                "amount"=>$amount,
+                "fee"=>$fee,
+                "status"=>$this->STATUS_LIST[$item["paymentStatusInfo"]["paymentStatus"]],
+                "partner"=>$this->getCustomFieldValue($item, "partner")
+              );
+            }
+          }
+        }
+        else {
+          $code = 500;
+          $message = 'Report Error 1: ' . $response;
+        }
+      }
+      else {
+        $code = 500;
+        $message = 'Report Error 2: Can not accept payment request.';
+      }
+    }
+    catch (GuzzleException $e) {
+      $success = true;
+      $message = "report data";
+    }
+    catch (\Exception $e) {
+      $success = true;
+      $message = "report data";
+    }
+
+    return response()->json([
+      'code' => $code,
+      'success' => $success,
+      'message' => $message,
+      'timestamp' => $timestamp,
+      'body' => $body
+    ])->setStatusCode($code);
+  }
+
+  private function isContainEmail($email, $item): bool
+  {
+    if( $email == null ){
+      $result = true;
+    }
+    else if( strlen(trim($email)) == 0){
+      $result = true;
+    }
+    else{
+      if( $item["generalPayerDetails"] != null ){
+        $pattern = "/$email/i";
+        if (preg_match($pattern, $item["generalPayerDetails"]["email"]))
+          $result = true;
+        else
+          $result = false;
+      }
+      else{
+        $result = false;
+      }
+    }
+
+    return $result;
+  }
+
+  private function isContainName($name, $item): bool
+  {
+    if( $name == null ){
+      $result = true;
+    }
+    else if( strlen(trim($name)) == 0 ){
+      return true;
+    }
+    else{
+      if( $item["creditCardDetails"] != null && $item["creditCardDetails"]["cardHolderName"] != null){
+        $pattern = "/$name/i";
+        if (preg_match($pattern, $item["creditCardDetails"]["cardHolderName"]))
+          $result = true;
+        else
+          $result = false;
+      }
+      else{
+        $result = false;
+      }
+    }
+
+    return $result;
+  }
+
+  private function getCustomFieldValue($item, $fieldName){
+    foreach ($item["customFieldList"] as $field) {
+      if ($field["fieldName"] === $fieldName) {
+        return $field["fieldValue"];
+      }
+    }
+
+    return null;
+  }
+}
+
