@@ -51,7 +51,7 @@ class PaymentController extends Controller
           $message = "Payment Error 2";
           $body = "Amount is required.";
         }
-        else if($productName == null || strlen(trim($productName))){
+        else if($productName == null || strlen(trim($productName)) == 0){
           $code = 400;
           $message = "Payment Error 3";
           $body = "Product name is required.";
@@ -105,6 +105,8 @@ class PaymentController extends Controller
     $timestamp = now()->toIso8601String();
     $body = array();
 
+    $totalCount = 0;
+
     try {
       $host = $request->getHost();
       $acceptedHosts = Config::get('hosts');
@@ -117,14 +119,17 @@ class PaymentController extends Controller
         $email = $request->input("email");
         $name = $request->input("name");
         $status = $request->input("status");
+        $maxResults = $request->input("maxResults");
 
         if( $email == null || strlen(trim($email)) == 0 )
           $email = null;
         if( $name == null || strlen(trim($name)) == 0 )
           $name = null;
+        if( $maxResults == null || strlen(trim($maxResults)) == 0 || !is_numeric($maxResults) )
+          $maxResults = 0;
 
         $inquiry = new \Inquiry();
-        $response = $inquiry->ExecuteWithParam($orderNo, $fromDate, $toDate, $status);
+        $response = $inquiry->ExecuteWithParam($orderNo, $fromDate, $toDate, $status, $maxResults);
         $respData = json_decode($response, true);
 
         if (is_array($respData) && isset($respData['data'])) {
@@ -133,6 +138,7 @@ class PaymentController extends Controller
           $jdbData = $respData['data'];
           foreach ($jdbData as $item){
             if( $this->isContainEmail($email, $item) && $this->isContainName($name, $item)){
+              $partnerHost = $this->getCustomFieldValue($item, "partner");
               $fullName = null;
               if($item["creditCardDetails"] != null && $item["creditCardDetails"]["cardHolderName"] != null )
                 $fullName = $item["creditCardDetails"]["cardHolderName"];
@@ -144,6 +150,9 @@ class PaymentController extends Controller
               if( $fee == null )
                 $fee = 0;
               $amount -= $fee;
+              if( $host != $partnerHost )
+                continue;
+
               $body[] = array(
                 "orderNo"=>$item["orderNo"],
                 "name"=>$fullName,
@@ -154,6 +163,9 @@ class PaymentController extends Controller
                 "status"=>$this->STATUS_LIST[$item["paymentStatusInfo"]["paymentStatus"]],
                 "partner"=>$this->getCustomFieldValue($item, "partner")
               );
+              $totalCount++;
+              if( $maxResults > 0 && $maxResults == $totalCount )
+                break;
             }
           }
         }
