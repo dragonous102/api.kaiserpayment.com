@@ -20,5 +20,4 @@ Route::get('/payment-failed', 'TestController@failed')->name('page.cancellation'
 Route::get('/payment-cancellation', 'TestController@cancellation')->name('page.failed');
 Route::get('/payment-backend', 'TestController@backend')->name('page.backend');
 
-Route::post('/prepayment', 'PaymentController@prePayment')->name('prePayment');
-Route::post('/getReport', 'PaymentController@getReport')->name('getReport');
+

@@ -92,15 +92,8 @@
           status: $('#status').val(),
         };
 
-        // Set CSRF token for all AJAX requests
-        $.ajaxSetup({
-          headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-          }
-        });
-
         $.ajax({
-          url: window.location.origin + '/getReport',
+          url: window.location.origin + '/api/getReport',
           type: 'POST',
           data: JSON.stringify(dataToSend),
           contentType: 'application/json',

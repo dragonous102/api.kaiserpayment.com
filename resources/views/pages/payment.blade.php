@@ -43,15 +43,8 @@
           product_name: $('#product_name').val(),
         };
 
-        // Set CSRF token for all AJAX requests
-        $.ajaxSetup({
-          headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-          }
-        });
-
         $.ajax({
-          url: window.location.origin + '/prepayment',
+          url: window.location.origin + '/api/prepayment',
           type: 'POST',
           data: JSON.stringify(dataToSend),
           contentType: 'application/json',
