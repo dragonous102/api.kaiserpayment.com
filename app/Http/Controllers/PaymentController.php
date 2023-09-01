@@ -41,35 +41,51 @@ class PaymentController extends Controller
 
         $amount = $request->input("amount");
         $productName = $request->input("product_name");
-
-        $payment = new \Payment();
-        $response = $payment->ExecuteJose($amount, $productName, $host);
-        $respData = json_decode($response, true);
-        if (is_array($respData) && isset($respData['data'])) {
-          $success = true;
-          $body = $respData['data']['paymentPage']['paymentPageURL'];
-          $message = "paymentPageURL";
-        }
-        else {
-          $code = 500;
+        if(($amount == null || !is_numeric($amount)) && ($productName == null || strlen(trim($productName)) == 0 )){
+          $code = 400;
           $message = "Payment Error 1";
-          $body = $response;
+          $body = "Empty request.";
+        }
+        else if($amount == null || !is_numeric($amount)){
+          $code = 400;
+          $message = "Payment Error 2";
+          $body = "Amount is required.";
+        }
+        else if($productName == null || strlen(trim($productName))){
+          $code = 400;
+          $message = "Payment Error 3";
+          $body = "Product name is required.";
+        }
+        else{
+          $payment = new \Payment();
+          $response = $payment->ExecuteJose($amount, $productName, $host);
+          $respData = json_decode($response, true);
+          if (is_array($respData) && isset($respData['data'])) {
+            $success = true;
+            $body = $respData['data']['paymentPage']['paymentPageURL'];
+            $message = "paymentPageURL";
+          }
+          else {
+            $code = 500;
+            $message = "Payment Error 4";
+            $body = $response;
+          }
         }
       }
       else {
         $code = 400;
-        $message = "Payment Error 2";
-        $body = "Can not accept payment this request.";
+        $message = "Payment Error 5";
+        $body = "Can not accept this request.";
       }
     }
     catch (GuzzleException $e) {
       $code = 500;
-      $message = "Payment Error 3";
+      $message = "Payment Error 6";
       $body = $e->getMessage();
     }
     catch (\Exception $e) {
       $code = 500;
-      $message = "Payment Error 4";
+      $message = "Payment Error 7";
       $body = $e->getMessage();
     }
 
