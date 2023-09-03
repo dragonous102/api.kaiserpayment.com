@@ -204,7 +204,7 @@ class PaymentController extends Controller
     }
     else
     {
-      $ip = $_SERVER["REMOTE_ADDR"];
+      $ip = $_SERVER["REMOTE_ADDR"].','.gethostname();
     }
     echo "<center>
         <h2>YOUR IP ADDRESS is ".$ip." </h2>
@@ -216,7 +216,7 @@ class PaymentController extends Controller
     return response()->json([
       'code' => $code,
       'success' => $success,
-      'message' => $message.' from '.php_uname('n'),
+      'message' => $message.' from '.php_uname('a s n r v m'),
       'timestamp' => $timestamp,
       'body' => $body
     ])->setStatusCode($code);
