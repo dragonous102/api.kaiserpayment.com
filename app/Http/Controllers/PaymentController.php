@@ -92,7 +92,7 @@ class PaymentController extends Controller
     return response()->json([
       'code' => $code,
       'success' => $success,
-      'message' => $message.' from '.$host,
+      'message' => $message.' from '.$request->header('X-Client-Domain'),
       'timestamp' => $timestamp,
       'body' => $body
     ])->setStatusCode($code);
@@ -191,7 +191,7 @@ class PaymentController extends Controller
     return response()->json([
       'code' => $code,
       'success' => $success,
-      'message' => $message.' from '.$host,
+      'message' => $message.' from '.$request->header('X-Client-Domain'),
       'timestamp' => $timestamp,
       'body' => $body
     ])->setStatusCode($code);
