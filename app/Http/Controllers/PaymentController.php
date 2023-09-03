@@ -92,7 +92,7 @@ class PaymentController extends Controller
     return response()->json([
       'code' => $code,
       'success' => $success,
-      'message' => $message.' from '.$_SERVER['REMOTE_ADDR'],
+      'message' => $message.' from '.$_SERVER['REMOTE_ADDR'].','.gethostbyaddr($_SERVER['REMOTE_ADDR']),
       'timestamp' => $timestamp,
       'body' => $body
     ])->setStatusCode($code);
@@ -191,7 +191,7 @@ class PaymentController extends Controller
     return response()->json([
       'code' => $code,
       'success' => $success,
-      'message' => $message.' from '.$_SERVER['REMOTE_ADDR'],
+      'message' => $message.' from '.$_SERVER['REMOTE_ADDR'].','.gethostbyaddr($_SERVER['REMOTE_ADDR']),
       'timestamp' => $timestamp,
       'body' => $body
     ])->setStatusCode($code);
