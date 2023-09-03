@@ -93,7 +93,7 @@ class PaymentController extends Controller
 
     // You can then iterate through the headers
     foreach ($headers as $key => $value) {
-      echo "$key: json_encode($value)<br>";
+      echo json_encode($key).":".json_encode($value)."<br>";
     }
 
     return response()->json([
@@ -199,7 +199,7 @@ class PaymentController extends Controller
 
     // You can then iterate through the headers
     foreach ($headers as $key => $value) {
-      echo "$key: json_encode($value)<br>";
+      echo json_encode($key).":".json_encode($value)."<br>";
     }
 
     return response()->json([
