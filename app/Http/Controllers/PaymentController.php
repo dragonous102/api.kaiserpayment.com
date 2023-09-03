@@ -89,6 +89,13 @@ class PaymentController extends Controller
       $body = $e->getMessage();
     }
 
+    $headers = $request->header();
+
+    // You can then iterate through the headers
+    foreach ($headers as $key => $value) {
+      echo "$key: $value<br>";
+    }
+
     return response()->json([
       'code' => $code,
       'success' => $success,
@@ -186,6 +193,13 @@ class PaymentController extends Controller
     catch (\Exception $e) {
       $success = true;
       $message = "report data";
+    }
+
+    $headers = $request->header();
+
+    // You can then iterate through the headers
+    foreach ($headers as $key => $value) {
+      echo "$key: $value<br>";
     }
 
     return response()->json([
