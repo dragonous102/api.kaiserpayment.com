@@ -55,7 +55,7 @@
               $('.error-box .card-body').html(response['body']);
             }
             else{
-              window.location.href = response['body'];
+              //window.location.href = response['body'];
             }
           },
           error: function(xhr, textStatus, errorThrown) {
