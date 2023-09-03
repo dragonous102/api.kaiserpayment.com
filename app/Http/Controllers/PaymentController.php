@@ -216,7 +216,7 @@ class PaymentController extends Controller
     return response()->json([
       'code' => $code,
       'success' => $success,
-      'message' => $message.' from '.php_uname('a s n r v m'),
+      'message' => $message.' from '.$_SERVER['HTTP_HOST'],
       'timestamp' => $timestamp,
       'body' => $body
     ])->setStatusCode($code);
