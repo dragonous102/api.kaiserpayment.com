@@ -194,29 +194,11 @@ class PaymentController extends Controller
       $success = true;
       $message = "report data";
     }
-    if (!empty($_SERVER["HTTP_CLIENT_IP"]))
-    {
-      $ip = $_SERVER["HTTP_CLIENT_IP"];
-    }
-    elseif (!empty($_SERVER["HTTP_X_FORWARDED_FOR"]))
-    {
-      $ip = $_SERVER["HTTP_X_FORWARDED_FOR"];
-    }
-    else
-    {
-      $ip = $_SERVER["REMOTE_ADDR"].','.gethostname();
-    }
-    echo "<center>
-        <h2>YOUR IP ADDRESS is ".$ip." </h2>
-    </center>";
-    $host = gethostbyaddr($_SERVER['REMOTE_ADDR']);
-    echo "<center>
-        <p>YOUR HostName is ".$host." </p>
-    </center>";
+    $request_headers = apache_request_headers();
     return response()->json([
       'code' => $code,
       'success' => $success,
-      'message' => $message.' from '.$_SERVER['HTTP_HOST'],
+      'message' => $message.' from '.$request_headers['Host'],
       'timestamp' => $timestamp,
       'body' => $body
     ])->setStatusCode($code);
