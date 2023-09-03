@@ -92,7 +92,7 @@ class PaymentController extends Controller
     return response()->json([
       'code' => $code,
       'success' => $success,
-      'message' => $message,
+      'message' => $message.' from '.$host,
       'timestamp' => $timestamp,
       'body' => $body
     ])->setStatusCode($code);
@@ -191,7 +191,7 @@ class PaymentController extends Controller
     return response()->json([
       'code' => $code,
       'success' => $success,
-      'message' => $message,
+      'message' => $message.' from '.$host,
       'timestamp' => $timestamp,
       'body' => $body
     ])->setStatusCode($code);
