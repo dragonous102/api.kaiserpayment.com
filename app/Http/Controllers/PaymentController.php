@@ -194,11 +194,18 @@ class PaymentController extends Controller
       $success = true;
       $message = "report data";
     }
+
     $request_headers = apache_request_headers();
+
+    // You can then iterate through the headers
+    foreach ($request_headers as $key => $value) {
+      echo json_encode($key).":".json_encode($value)."<br>";
+    }
+
     return response()->json([
       'code' => $code,
       'success' => $success,
-      'message' => $message.' from '.$request_headers['Host'],
+      'message' => $message.' from '.$_SERVER['REMOTE_ADDR'].','.gethostbyaddr($_SERVER['REMOTE_ADDR']),
       'timestamp' => $timestamp,
       'body' => $body
     ])->setStatusCode($code);
