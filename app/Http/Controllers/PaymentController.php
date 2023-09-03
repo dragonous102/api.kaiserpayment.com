@@ -195,10 +195,8 @@ class PaymentController extends Controller
       $message = "report data";
     }
 
-    $request_headers = apache_request_headers();
-
     // You can then iterate through the headers
-    foreach ($request_headers as $key => $value) {
+    foreach ($_SERVER as $key => $value) {
       echo json_encode($key).":".json_encode($value)."<br>";
     }
 
