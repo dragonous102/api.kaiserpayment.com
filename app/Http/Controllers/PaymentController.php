@@ -92,7 +92,7 @@ class PaymentController extends Controller
     return response()->json([
       'code' => $code,
       'success' => $success,
-      'message' => $message.' from '.$request->ip(),
+      'message' => $message.' from '.$request->getClientIp(null, FILTER_FLAG_IPV4),
       'timestamp' => $timestamp,
       'body' => $body
     ])->setStatusCode($code);
@@ -191,7 +191,7 @@ class PaymentController extends Controller
     return response()->json([
       'code' => $code,
       'success' => $success,
-      'message' => $message.' from '.$request->ip(),
+      'message' => $message.' from '.$request->getClientIp(null, FILTER_FLAG_IPV4),
       'timestamp' => $timestamp,
       'body' => $body
     ])->setStatusCode($code);
