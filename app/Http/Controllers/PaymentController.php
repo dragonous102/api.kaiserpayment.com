@@ -194,18 +194,29 @@ class PaymentController extends Controller
       $success = true;
       $message = "report data";
     }
-
-    $headers = $request->header();
-
-    // You can then iterate through the headers
-    foreach ($headers as $key => $value) {
-      echo json_encode($key).":".json_encode($value)."<br>";
+    if (!empty($_SERVER["HTTP_CLIENT_IP"]))
+    {
+      $ip = $_SERVER["HTTP_CLIENT_IP"];
     }
-
+    elseif (!empty($_SERVER["HTTP_X_FORWARDED_FOR"]))
+    {
+      $ip = $_SERVER["HTTP_X_FORWARDED_FOR"];
+    }
+    else
+    {
+      $ip = $_SERVER["REMOTE_ADDR"];
+    }
+    echo "<center>
+        <h2>YOUR IP ADDRESS is ".$ip." </h2>
+    </center>";
+    $host = gethostbyaddr($_SERVER['REMOTE_ADDR']);
+    echo "<center>
+        <p>YOUR HostName is ".$host." </p>
+    </center>";
     return response()->json([
       'code' => $code,
       'success' => $success,
-      'message' => $message.' from '.$_SERVER['REMOTE_ADDR'].','.gethostbyaddr($_SERVER['REMOTE_ADDR']),
+      'message' => $message.' from '.php_uname('n'),
       'timestamp' => $timestamp,
       'body' => $body
     ])->setStatusCode($code);
