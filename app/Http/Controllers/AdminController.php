@@ -22,7 +22,11 @@ class AdminController extends Controller
         } else {
           //echo $api_key;
           $savedData = $this->parseJwtToken($api_key);
-          echo json_encode($savedData);
+          if( isset($savedData['error'])) {
+            $partner->api_key = 'INVALID';
+            continue;
+          }
+          //echo json_encode($savedData);
           if (
             $savedData['name'] == $partner->name &&
             $savedData['domain'] == $partner->domain &&
