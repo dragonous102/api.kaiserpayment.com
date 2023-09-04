@@ -29,7 +29,7 @@
           <input type="text" class="form-control" id="new_domain" placeholder="NewPartner.example.com">
         </td>
         <td>
-          <input type="number" class="form-control" id="new_fee" placeholder="fee %">
+          <input type="number" class="form-control" id="new_fee" placeholder="fee %" style="width: 100px;">
         </td>
         <td>
           <!-- API Key (Static) -->
