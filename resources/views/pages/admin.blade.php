@@ -267,7 +267,7 @@
         },
         success: function(response) {
           if( response['code'] === 200 ){
-            $(".api-key").html(response['body']);
+            $(".modal-api-key").html(response['body']);
           }
         },
         error: function(xhr, textStatus, errorThrown) {
