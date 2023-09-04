@@ -2,6 +2,14 @@
 
 @section('content')
   <div class="container">
+    <div class="row justify-content-center">
+      <div class="add-success error-box card border-success mb-3" style="display: none">
+        <div class="card-body text-success"></div>
+      </div>
+      <div class="add-failed error-box card border-danger mb-3" style="display: none">
+        <div class="card-body text-danger"></div>
+      </div>
+    </div>
     <table class="table">
       <thead>
       <tr>
@@ -13,32 +21,6 @@
         <th>Update Date</th>
         <th>Operation</th>
       </tr>
-      </thead>
-      <tbody>
-      <!-- Loop through your data here -->
-      @foreach ($adminData as $data)
-        <tr>
-          <td>{{ $data->name }}</td>
-          <td>{{ $data->domain }}</td>
-          <td>{{ $data->fee }}</td>
-          <td>{{ $data->api_key }}</td>
-          <td>
-            <select class="form-control" id="status_{{ $data->id }}">
-              <option value="enable" {{ $data->status == 'enable' ? 'selected' : '' }}>Enable</option>
-              <option value="disable" {{ $data->status == 'disable' ? 'selected' : '' }}>Disable</option>
-            </select>
-          </td>
-          <td>{{ $data->update_date }}</td>
-          <td>
-            <button class="btn btn-primary" data-toggle="modal" data-target="#updateModal_{{ $data->id }}">Update</button>
-          </td>
-        </tr>
-
-        @include('pages.admin.modal')
-
-      @endforeach
-      </tbody>
-      <tfoot>
       <tr>
         <td>
           <input type="text" class="form-control" id="new_name" placeholder="New Partner Name">
@@ -60,35 +42,68 @@
         </td>
         <td></td>
         <td>
-          <button class="btn btn-primary" onclick="addEntry()">Add New Partner</button>
+          <button class="btn btn-primary" onclick="addPartner()">
+            <i class="fas fa-plus-circle"></i>
+            Add New Partner</button>
         </td>
       </tr>
+      </thead>
+      <tbody id="partner-body">
+      <!-- Loop through your data here -->
+      @foreach ($partners as $partner)
+        <tr>
+          <td class="name">{{ $partner->name }}</td>
+          <td class="domain">{{ $partner->domain }}</td>
+          <td class="fee">{{ $partner->fee }}</td>
+          <td class="api-key">
+            <button class="trans-btn" data-bs-toggle="modal" data-bs-target="#apiKeyModal" onclick="getApiKey({{ $partner->id }})">
+              @if ($partner->api_key == 'MISSING' )
+                <i class="fas fa-eye-slash"></i>
+              @elseif($partner->api_key == 'INVALID' )
+                <i class="fas fa-eye-slash text-danger"></i>
+              @else
+                <i class="fas fa-eye text-success"></i>
+              @endif
+            </button>
+          </td>
+          <td class="status">
+            @if ($partner->status == 1)
+              <span class="text-success">
+                <i class="fas fa-check-circle"></i> Enabled
+              </span>
+            @else
+              <span class="text-danger">
+                <i class="fas fa-ban"></i> Disabled
+              </span>
+            @endif
+          </td>
+          <td class="update_at">{{ $partner->updated_at }}</td>
+          <td>
+            <button class="btn btn-outline-primary" id="modal_update_{{ $partner->id }}" data-bs-toggle="modal" data-bs-target="#updatePartnerModal" onclick="getPartner({{ $partner->id }})">
+              <i class="fas fa-edit"></i> Update
+            </button>
+            <button class="btn btn-danger" onclick="deletePartner({{ $partner->id }})">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </td>
+        </tr>
+      @endforeach
+
+      @include('pages.admin_modal')
+      @include('pages.admin_modal_api')
+
+      </tbody>
+      <tfoot>
+
       </tfoot>
     </table>
-    <div class="row justify-content-center">
-      <div class="col-md-6">
-        <div class="add-success error-box card border-success mb-3" style="display: none">
-          <div class="card-header bg-success text-white">Added new partner successfully.</div>
-          <div class="card-body text-success">
-            <p>Payment was unsuccessful.</p>
-          </div>
-        </div>
-        <div class="add-failed error-box card border-danger mb-3" style="display: none">
-          <div class="card-header bg-danger text-white">Failed to add new partner.</div>
-          <div class="card-body text-danger">
-            <p>Payment was unsuccessful.</p>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
     $(document).ready(function(){
-
     });
 
-    function addEntry(){
+    function addPartner(){
       let dataToSend = {
         name: $('#new_name').val(),
         domain: $('#new_domain').val(),
@@ -114,6 +129,35 @@
             $('.add-success').show();
             $('.add-failed').hide();
             $('.add-success .card-body').html(response['message']);
+
+            let body = response['body'];
+            let status = '<span class="text-success">\
+                              <i class="fas fa-check-circle"></i> Enabled\
+                          </span>';
+            if( body.status * 1 === 0 ){
+              status = '<span class="text-danger">\
+                            <i class="fas fa-ban"></i> Disabled\
+                        </span>'
+            }
+
+            let newRow = '<tr>\
+                        <td class="name">'+ body.name +'</td>\
+                        <td class="domain">'+ body.domain +'</td>\
+                        <td class="fee">'+ body.fee +'</td>\
+                        <td><button class="trans-btn" onclick="getApiKey('+ body.id +')" data-bs-toggle="modal" data-bs-target="#apiKeyModal">\
+                          <i class="fas fa-eye-slash"></i></button></td>\
+                        <td class="status">'+ status +'</td>\
+                        <td class="update_at">'+ body.updated_at +'</td>\
+                        <td>\
+                          <button class="btn btn-outline-primary" id="modal_update_'+ body.id +'" data-bs-toggle="modal" data-bs-target="#updatePartnerModal" onclick="getPartner('+ body.id +')">\
+                            <i class="fas fa-edit"></i> Update\
+                          </button>\
+                          <button class="btn btn-danger" onclick="deletePartner('+ body.id +')">\
+                            <i class="fas fa-trash-alt"></i>\
+                          </button>\
+                        </td>\
+                      </tr>';
+            $("#partner-body").prepend(newRow);
           }
         },
         error: function(xhr, textStatus, errorThrown) {
@@ -124,6 +168,115 @@
       });
     }
 
+    function getPartner(id){
+
+      $('.modal-success').hide();
+      $('.modal-failed').hide();
+
+      let dataToSend = {
+        id: id,
+      };
+
+      $.ajax({
+        url: window.location.origin + '/admin-get-partner',
+        type: 'POST',
+        data: JSON.stringify(dataToSend),
+        contentType: 'application/json',
+        headers: {
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+          if( response['code'] !== 200 ){
+            $('.add-success').hide();
+            $('.add-failed').show();
+            $('.add-failed .card-body').html(response['message']);
+          }
+          else{
+            $('.add-failed').hide();
+            let data = response['body'];
+            $('#modal_id').val(data.id);
+            $('#modal_name').val(data.name);
+            $('#modal_domain').val(data.domain);
+            $('#modal_fee').val(data.fee);
+            $('#modal_status').val(data.status);
+            $('#modal_api_key').text(data.api_key);
+          }
+        },
+        error: function(xhr, textStatus, errorThrown) {
+          $('.add-success').hide();
+          $('.add-failed').show();
+          $('.add-failed .card-body').html(xhr.responseJSON.message);
+        }
+      });
+    }
+
+    function deletePartner(id){
+      $('.modal-success').hide();
+      $('.modal-failed').hide();
+
+      let confirmed = window.confirm('Are you sure you want to delete this partner?');
+      if (!confirmed)
+        return;
+
+      let dataToSend = {
+        id: id,
+      };
+
+      $.ajax({
+        url: window.location.origin + '/admin-delete-partner',
+        type: 'POST',
+        data: JSON.stringify(dataToSend),
+        contentType: 'application/json',
+        headers: {
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+          if( response['code'] !== 200 ){
+            $('.add-success').hide();
+            $('.add-failed').show();
+            $('.add-failed .card-body').html(response['message']);
+          }
+          else{
+            $('.add-failed').hide();
+            $('.add-success').show();
+            $('.add-success .card-body').html(response['message']);
+            $("#modal_update_" + id).closest('tr').remove();
+          }
+        },
+        error: function(xhr, textStatus, errorThrown) {
+          $('.add-success').hide();
+          $('.add-failed').show();
+          $('.add-failed .card-body').html(xhr.responseJSON.message);
+        }
+      });
+    }
+
+    function getApiKey(id){
+
+      let dataToSend = {
+        id: id,
+      };
+
+      $.ajax({
+        url: window.location.origin + '/admin-get-apikey',
+        type: 'POST',
+        data: JSON.stringify(dataToSend),
+        contentType: 'application/json',
+        headers: {
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+          if( response['code'] === 200 ){
+            $(".api-key").html(response['body']);
+          }
+        },
+        error: function(xhr, textStatus, errorThrown) {
+          $('.add-success').hide();
+          $('.add-failed').show();
+          $('.add-failed .card-body').html(xhr.responseJSON.message);
+        }
+      });
+    }
 
   </script>
 @endsection
