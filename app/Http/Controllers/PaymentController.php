@@ -200,6 +200,9 @@ class PaymentController extends Controller
       echo json_encode($key).":".json_encode($value)."<br>";
     }
 
+    echo '<br/>'.json_encode(parse_url($_SERVER['HTTP_HOST']));
+    echo '<br/>'.json_encode(parse_url($_SERVER['SERVER_NAME']));
+
     return response()->json([
       'code' => $code,
       'success' => $success,
