@@ -96,10 +96,12 @@ class PaymentController extends Controller
       echo json_encode($key).":".json_encode($value)."<br>";
     }
 
+
+
     return response()->json([
       'code' => $code,
       'success' => $success,
-      'message' => $message.' from '.$_SERVER['REMOTE_ADDR'].','.gethostbyaddr($_SERVER['REMOTE_ADDR']),
+        'message' => $message.' from '.$_SERVER['REMOTE_ADDR'].','.gethostbyaddr($_SERVER['REMOTE_ADDR']),
       'timestamp' => $timestamp,
       'body' => $body
     ])->setStatusCode($code);
@@ -202,6 +204,31 @@ class PaymentController extends Controller
 
     echo '<br/>'.json_encode(parse_url($_SERVER['HTTP_HOST']));
     echo '<br/>'.json_encode(parse_url($_SERVER['SERVER_NAME']));
+
+    $client  = @$_SERVER['HTTP_CLIENT_IP'];
+    $forward = @$_SERVER['HTTP_X_FORWARDED_FOR'];
+    $remote  = $_SERVER['REMOTE_ADDR'];
+    $country  = "Unknown";
+
+    if(filter_var($client, FILTER_VALIDATE_IP))
+    {
+      $ip = $client;
+    }
+    elseif(filter_var($forward, FILTER_VALIDATE_IP))
+    {
+      $ip = $forward;
+    }
+    else
+    {
+      $ip = $remote;
+    }
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, "http://www.geoplugin.net/json.gp?ip=".$ip);
+    curl_setopt($ch, CURLOPT_HEADER, 0);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+    $ip_data_in = curl_exec($ch); // string
+    curl_close($ch);
+    echo '$ip_data_in'.$ip_data_in;
 
     return response()->json([
       'code' => $code,
