@@ -21,3 +21,7 @@ Route::get('/payment-cancellation', 'TestController@cancellation')->name('page.f
 Route::get('/payment-backend', 'TestController@backend')->name('page.backend');
 Route::get('/admin-dashboard', 'AdminController@showDashboard')->name('page.admin.dashboard');
 Route::post('/admin-add-partner', 'AdminController@addNewPartner')->name('admin.add.partner');
+Route::post('/admin-get-partner', 'AdminController@getPartner')->name('admin.get.partner');
+Route::post('/admin-update-partner', 'AdminController@updatePartner')->name('admin.update.partner');
+Route::post('/admin-delete-partner', 'AdminController@deletePartner')->name('admin.delete.partner');
+Route::post('/admin-get-apikey', 'AdminController@getApiKey')->name('admin.get.apikey');
