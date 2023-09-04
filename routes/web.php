@@ -19,3 +19,5 @@ Route::get('/payment-confirmation', 'TestController@confirmation')->name('page.c
 Route::get('/payment-failed', 'TestController@failed')->name('page.cancellation');
 Route::get('/payment-cancellation', 'TestController@cancellation')->name('page.failed');
 Route::get('/payment-backend', 'TestController@backend')->name('page.backend');
+Route::get('/admin-dashboard', 'AdminController@showDashboard')->name('page.admin.dashboard');
+Route::post('/admin-add-partner', 'AdminController@addNewPartner')->name('admin.add.partner');
