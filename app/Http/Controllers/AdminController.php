@@ -16,6 +16,7 @@ class AdminController extends Controller
 
       foreach ($partners as $partner) {
         $api_key = $this->getApiKeyFromDomain($partner->domain);
+        echo $api_key;
 
         if ($api_key === null || strlen(trim($api_key)) == 0) {
           $partner->api_key = 'MISSING';
