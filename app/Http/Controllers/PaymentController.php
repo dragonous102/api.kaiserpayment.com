@@ -205,30 +205,21 @@ class PaymentController extends Controller
     echo '<br/>'.json_encode(parse_url($_SERVER['HTTP_HOST']));
     echo '<br/>'.json_encode(parse_url($_SERVER['SERVER_NAME']));
 
-    $client  = @$_SERVER['HTTP_CLIENT_IP'];
-    $forward = @$_SERVER['HTTP_X_FORWARDED_FOR'];
-    $remote  = $_SERVER['REMOTE_ADDR'];
-    $country  = "Unknown";
+    $proxy = (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : false;
 
-    if(filter_var($client, FILTER_VALIDATE_IP))
-    {
-      $ip = $client;
+    if(!!$proxy){
+      $ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
+      echo "Warning: Your cliend is using proxy, may could not determine hostname";
+    }else{
+      $ipaddress = $_SERVER['REMOTE_ADDR']; //
     }
-    elseif(filter_var($forward, FILTER_VALIDATE_IP))
-    {
-      $ip = $forward;
+    $hostname = gethostbyaddr($ipaddress); //Its will return domain + machine-name inside a private network.
+
+    if($ipaddress  == $hostname){
+      echo "Impossible to determine hostname for: ", $ipaddress ;
+    }else{
+      echo "The hostname for ", $ipaddress, "is : ",  $hostname;
     }
-    else
-    {
-      $ip = $remote;
-    }
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, "http://www.geoplugin.net/json.gp?ip=".$ip);
-    curl_setopt($ch, CURLOPT_HEADER, 0);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-    $ip_data_in = curl_exec($ch); // string
-    curl_close($ch);
-    echo '$ip_data_in'.$ip_data_in;
 
     return response()->json([
       'code' => $code,
