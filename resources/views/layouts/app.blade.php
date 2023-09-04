@@ -8,7 +8,7 @@
 </head>
 <body>
 <header class="text-center py-4">
-  <h1 class="mb-0">{{ config('app.name', 'Kaiser') }} API Test</h1>
+  <h1 class="mb-0">{{ config('app.name', 'Kaiser') }} API</h1>
 </header>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -26,7 +26,7 @@
           <a class="nav-link" href="{{ route('page.report') }}">Report</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Admin</a>
+          <a class="nav-link" href="{{ route('page.admin.dashboard') }}">Admin</a>
         </li>
       </ul>
     </div>

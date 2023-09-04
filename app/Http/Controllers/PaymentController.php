@@ -89,19 +89,10 @@ class PaymentController extends Controller
       $body = $e->getMessage();
     }
 
-    $headers = $request->header();
-
-    // You can then iterate through the headers
-    foreach ($headers as $key => $value) {
-      echo json_encode($key).":".json_encode($value)."<br>";
-    }
-
-
-
     return response()->json([
       'code' => $code,
       'success' => $success,
-        'message' => $message.' from '.$_SERVER['REMOTE_ADDR'].','.gethostbyaddr($_SERVER['REMOTE_ADDR']),
+        'message' => $message,
       'timestamp' => $timestamp,
       'body' => $body
     ])->setStatusCode($code);
@@ -197,34 +188,10 @@ class PaymentController extends Controller
       $message = "report data";
     }
 
-    // You can then iterate through the headers
-    foreach ($_SERVER as $key => $value) {
-      echo json_encode($key).":".json_encode($value)."<br>";
-    }
-
-    echo '<br/>'.json_encode(parse_url($_SERVER['HTTP_HOST']));
-    echo '<br/>'.json_encode(parse_url($_SERVER['SERVER_NAME']));
-
-    $proxy = (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : false;
-
-    if(!!$proxy){
-      $ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
-      echo "Warning: Your cliend is using proxy, may could not determine hostname";
-    }else{
-      $ipaddress = $_SERVER['REMOTE_ADDR']; //
-    }
-    $hostname = gethostbyaddr($ipaddress); //Its will return domain + machine-name inside a private network.
-
-    if($ipaddress  == $hostname){
-      echo "Impossible to determine hostname for: ", $ipaddress ;
-    }else{
-      echo "The hostname for ", $ipaddress, "is : ",  $hostname;
-    }
-
     return response()->json([
       'code' => $code,
       'success' => $success,
-      'message' => $message.' from '.$_SERVER['REMOTE_ADDR'].','.gethostbyaddr($_SERVER['REMOTE_ADDR']),
+      'message' => $message,
       'timestamp' => $timestamp,
       'body' => $body
     ])->setStatusCode($code);
