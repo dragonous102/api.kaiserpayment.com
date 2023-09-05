@@ -44,7 +44,7 @@ class PaymentController extends Controller
         $apiKey = $request->header('Authorization');
         $apiKeyPartner = ApiKey::parseJwtToken($apiKey);
         if(isset($apiKeyPartner['error'])){
-          $code = 400;
+          $code = 403;
           $message = "Payment Error 2";
           $body = "Invalid authorization API key.";
         }
@@ -52,7 +52,7 @@ class PaymentController extends Controller
           // Check api key validation
           $dbPartner = Partner::find($apiKeyPartner['id']);
           if( $dbPartner == null || $dbPartner->status == 0 ){
-            $code = 400;
+            $code = 403;
             $message = "Payment Error 3";
             $body = "Invalid authorization API key. This request to access the Kaiser API was declined.";
           }
@@ -61,7 +61,7 @@ class PaymentController extends Controller
               strtolower($dbPartner->name) != strtolower($apiKeyPartner['name']) ||
               $dbPartner->fee != $apiKeyPartner['fee'] ||
               strtolower($dbPartner->domain) != strtolower($apiKeyPartner['domain'])){
-              $code = 400;
+              $code = 403;
               $message = "Payment Error 4";
               $body = "Invalid authorization API key. It does not match the correct partner's information.";
             }
@@ -118,7 +118,7 @@ class PaymentController extends Controller
         }
       }
       else {
-        $code = 400;
+        $code = 403;
         $message = "Payment Error 1";
         $body = "Authorization is missing.";
       }
@@ -155,7 +155,7 @@ class PaymentController extends Controller
         $apiKey = $request->header('Authorization');
         $apiKeyPartner = ApiKey::parseJwtToken($apiKey);
         if(isset($apiKeyPartner['error'])){
-          $code = 400;
+          $code = 403;
           $message = "Report Error 2";
           $body = "Invalid authorization API key.";
         }
@@ -163,7 +163,7 @@ class PaymentController extends Controller
           // Check api key validation
           $dbPartner = Partner::find($apiKeyPartner['id']);
           if( $dbPartner == null || $dbPartner->status == 0 ){
-            $code = 400;
+            $code = 403;
             $message = "Report Error 3";
             $body = "Invalid authorization API key. This request to access the Kaiser API was declined.";
           }
@@ -172,7 +172,7 @@ class PaymentController extends Controller
               strtolower($dbPartner->name) != strtolower($apiKeyPartner['name']) ||
               $dbPartner->fee != $apiKeyPartner['fee'] ||
               strtolower($dbPartner->domain) != strtolower($apiKeyPartner['domain'])){
-              $code = 400;
+              $code = 403;
               $message = "Report Error 4";
               $body = "Invalid authorization API key. It does not match the correct partner's information.";
             }
@@ -289,7 +289,7 @@ class PaymentController extends Controller
         }
       }
       else {
-        $code = 400;
+        $code = 403;
         $message = "Report Error 1";
         $body = "Authorization is missing.";
       }
