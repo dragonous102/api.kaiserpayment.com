@@ -161,7 +161,7 @@ class AdminController extends Controller
           $existingPartner->domain == $domain &&
           $existingPartner->fee == $fee &&
           $existingPartner->id == $id ){
-          if($existingPartner->status == $status){
+          if($existingPartner->status != $status){
             $existingPartner->status = $status;
             $existingPartner->save();
           }
