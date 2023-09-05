@@ -161,6 +161,10 @@ class AdminController extends Controller
           $existingPartner->domain == $domain &&
           $existingPartner->fee == $fee &&
           $existingPartner->id == $id ){
+          if($existingPartner->status == $status){
+            $existingPartner->status = $status;
+            $existingPartner->save();
+          }
           $existingPartner->api_key = ApiKey::getApiKeyFromDomain($domain);
           $success = true;
           $message = "You did not change partner's information.";
