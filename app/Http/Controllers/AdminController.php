@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Partner;
 use Illuminate\Http\Request;
 use App\Library\ApiKey;
+use Illuminate\Support\Facades\Artisan;
 
 class AdminController extends Controller
 {
@@ -27,10 +28,10 @@ class AdminController extends Controller
           }
           //echo json_encode($savedData);
           if (
+            $savedData['id'] == $partner->id &&
             $savedData['name'] == $partner->name &&
             $savedData['domain'] == $partner->domain &&
-            $savedData['fee'] == $partner->fee
-          ) {
+            $savedData['fee'] == $partner->fee) {
             $partner->api_key = $api_key;
           } else {
             $partner->api_key = 'INVALID';
@@ -156,17 +157,28 @@ class AdminController extends Controller
         $message = "The is no partner in database.";
       }
       else {
-        $existingPartner->name = $name;
-        $existingPartner->domain = $domain;
-        $existingPartner->fee = $fee;
-        $existingPartner->status = $status;
+        if( $existingPartner->name == $name &&
+          $existingPartner->domain == $domain &&
+          $existingPartner->fee == $fee &&
+          $existingPartner->id == $id ){
+          $existingPartner->api_key = ApiKey::getApiKeyFromDomain($domain);
+          $success = true;
+          $message = "You did not change partner's information.";
+          $body = $existingPartner;
+        }
+        else {
+          $existingPartner->name = $name;
+          $existingPartner->domain = $domain;
+          $existingPartner->fee = $fee;
+          $existingPartner->status = $status;
 
-        $existingPartner->save();
-        $existingPartner->api_key = ApiKey::generateJwtToken($id, $name, $domain, $fee);
+          $existingPartner->save();
+          $existingPartner->api_key = ApiKey::generateJwtToken($id, $name, $domain, $fee);
 
-        $success = true;
-        $message = "Partner information updated successfully. Please remember to manually update the API_KEY in the environment file to ensure proper functionality.";
-        $body = $existingPartner;
+          $success = true;
+          $message = "Partner information updated successfully. Please remember to manually update the API_KEY in the environment file to ensure proper functionality.";
+          $body = $existingPartner;
+        }
       }
     } catch (\Exception $e) {
       $code = 500;
@@ -219,36 +231,67 @@ class AdminController extends Controller
     $code = 200;
     $success = false;
     $timestamp = now()->toIso8601String();
-    $body = '';
 
     try {
       $id = $request->input("id");
-      $partner = Partner::find($id);
-      if ($partner) {
-        $success = true;
-        $api_key = ApiKey::getApiKeyFromDomain($partner->domain);
-
+      $dbPartner = Partner::find($id);
+      if ($dbPartner) {
+        $api_key = ApiKey::getApiKeyFromDomain($dbPartner->domain);
         if ($api_key === null || strlen(trim($api_key)) == 0) {
-          $body = "API KEY was not set in env file and config file.";
-        } else {
-          $savedData = ApiKey::parseJwtToken($api_key);
-          if (
-            $savedData['name'] == $partner->name &&
-            $savedData['domain'] == $partner->domain &&
-            $savedData['fee'] == $partner->fee
-          ) {
-            $body = "<p class='text-success'>".$api_key."</p>";
-          } else {
-            $body = "<p class='text-danger'> The information in the API KEY does not match the saved partner's information.</p> <br>API KEY: <br><p class='text-danger'>".$api_key.'</p>';
+          $message = "Any API KEY was not set in env file and config file for this partner or did not applied to the Kaiser server.";
+          $body = ['msg'=>"NO_API_KEY", 'api_key'=>''];
+        }
+        else {
+          $apiKeyPartner = ApiKey::parseJwtToken($api_key);
+          if ($apiKeyPartner['id'] != $dbPartner->id ||
+              $apiKeyPartner['name'] != $dbPartner->name ||
+              $apiKeyPartner['domain'] != $dbPartner->domain ||
+              $apiKeyPartner['fee'] != $dbPartner->fee) {
+            $message = "<p class='text-danger'> The information in the API KEY does not match the saved partner's information.</p><br>API KEY: <br>";
+            $body = ['msg'=>"INVALID_API_KEY", 'api_key'=>$api_key];
+          }
+          else {
+            $success = true;
+            $message = "<p class='text-success'> API KEY: </p>";
+            $body = ['msg'=>"VALID_API_KEY", 'api_key'=>$api_key];
           }
         }
-        $message = "API KEY";
-      } else {
-        $code = 400;
-        $message = "Failed to get API KEY.";
       }
+      else {
+        $code = 400;
+        $message = "<p class='text-danger'>Invalid partner.</p>";
+        $body = ['msg'=>"NO_API_KEY", 'api_key'=>''];
+      }
+    }
+    catch (\Exception $e) {
+      $code = 500;
+      $message = "<p class='text-danger'>$e->getMessage()</p>";
+      $body = ['msg'=>"NO_API_KEY", 'api_key'=>''];
+    }
+
+    return response()->json([
+      'code' => $code,
+      'success' => $success,
+      'message' => $message,
+      'timestamp' => $timestamp,
+      'body' => $body,
+    ])->setStatusCode($code);
+  }
+
+  public function applyApiKey(Request $request)
+  {
+    $code = 200;
+    $timestamp = now()->toIso8601String();
+    $body = '';
+
+    try {
+      $success = true;
+      Artisan::call('config:cache');
+      $output = Artisan::output();
+      $message = "The API KEY was applied to the Kaiser server successfully. Check the API KEY working status.";
     } catch (\Exception $e) {
       $code = 500;
+      $success = false;
       $message = $e->getMessage();
     }
 

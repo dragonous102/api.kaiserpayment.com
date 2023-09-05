@@ -25,3 +25,5 @@ Route::post('/admin-get-partner', 'AdminController@getPartner')->name('admin.get
 Route::post('/admin-update-partner', 'AdminController@updatePartner')->name('admin.update.partner');
 Route::post('/admin-delete-partner', 'AdminController@deletePartner')->name('admin.delete.partner');
 Route::post('/admin-get-apikey', 'AdminController@getApiKey')->name('admin.get.apikey');
+Route::post('/admin-apply-apikey', 'AdminController@applyApiKey')->name('admin.apply.apikey');
+

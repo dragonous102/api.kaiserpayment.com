@@ -133,6 +133,8 @@
             if( $(this).hasClass('update_at'))
               $(this).text(data.update_at);
           });
+
+          getApiKey($('#modal_id').val());
         }
       },
       error: function(xhr, textStatus) {

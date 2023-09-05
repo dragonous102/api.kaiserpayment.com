@@ -79,6 +79,9 @@
           </td>
           <td class="update_at">{{ $partner->updated_at }}</td>
           <td>
+            <button class="btn btn-outline-success" onclick="applyApiKey({{ $partner->id }})">
+              <i class="fas fa-check"></i> Apply Api Key
+            </button>
             <button class="btn btn-outline-primary" id="modal_update_{{ $partner->id }}" data-bs-toggle="modal" data-bs-target="#updatePartnerModal" onclick="getPartner({{ $partner->id }})">
               <i class="fas fa-edit"></i> Update
             </button>
@@ -149,6 +152,9 @@
                         <td class="status">'+ status +'</td>\
                         <td class="update_at">'+ body.updated_at +'</td>\
                         <td>\
+                          <button class="btn btn-outline-success" onclick="applyApiKey('+ body.id +')">\
+                              <i class="fas fa-check"></i> Apply Api Key\
+                          </button>\
                           <button class="btn btn-outline-primary" id="modal_update_'+ body.id +'" data-bs-toggle="modal" data-bs-target="#updatePartnerModal" onclick="getPartner('+ body.id +')">\
                             <i class="fas fa-edit"></i> Update\
                           </button>\
@@ -251,7 +257,7 @@
       });
     }
 
-    function getApiKey(id){
+    function getApiKey(id, other){
 
       let dataToSend = {
         id: id,
@@ -267,7 +273,36 @@
         },
         success: function(response) {
           if( response['code'] === 200 ){
-            $(".modal-api-key").html(response['body']);
+            let $transBtn = $('button#modal_update_' + id).closest('tr').find('.trans-btn');
+            $transBtn = $transBtn.find('i').removeClass('fa-eye-slash').removeClass('fa-eye').removeClass('text-danger').removeClass('text-success');
+            if( response['body'].msg === 'INVALID_API_KEY'){
+              $transBtn = $('button#modal_update_' + id).closest('tr').find('.trans-btn');
+              $transBtn.find('i').addClass('fa-eye-slash').addClass('text-danger');
+              $(".modal-api-key").html(response['message'] + "<p class='text-danger'>" + response['body'].api_key) + "</p>";
+              if(other === true){
+                $('.add-success').hide();
+                $('.add-failed').show();
+                $('.add-failed .card-body').html(response['message']);
+              }
+            }
+            else if( response['body'].msg === 'VALID_API_KEY'){
+              $transBtn = $('button#modal_update_' + id).closest('tr').find('.trans-btn');
+              $transBtn.find('i').addClass('fa-eye').addClass('text-success');
+              $(".modal-api-key").html(response['message'] + "<p class='text-success'>" + response['body'].api_key) + "</p>";
+            }
+            else if( response['body'].msg === 'NO_API_KEY'){
+              $transBtn = $('button#modal_update_' + id).closest('tr').find('.trans-btn');
+              $transBtn.find('i').addClass('fa-eye-slash');
+              $(".modal-api-key").html(response['message']);
+              if(other === true){
+                $('.add-success').hide();
+                $('.add-failed').show();
+                $('.add-failed .card-body').html(response['message']);
+              }
+            }
+            else{
+              $(".modal-api-key").html(response['message'] + response['body'].api_key);
+            }
           }
         },
         error: function(xhr, textStatus, errorThrown) {
@@ -278,5 +313,37 @@
       });
     }
 
+    function applyApiKey(id){
+
+      $('.add-success').hide();
+      $('.add-failed').hide();
+
+      let dataToSend = {
+        id: id,
+      };
+
+      $.ajax({
+        url: window.location.origin + '/admin-apply-apikey',
+        type: 'POST',
+        data: JSON.stringify(dataToSend),
+        contentType: 'application/json',
+        headers: {
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+          if( response['code'] === 200 ){
+            $('.add-success').show();
+            $('.add-failed').hide();
+            $('.add-success .card-body').html(response['message']);
+            getApiKey(id, true);
+          }
+        },
+        error: function(xhr, textStatus, errorThrown) {
+          $('.add-success').hide();
+          $('.add-failed').show();
+          $('.add-failed .card-body').html(xhr.responseJSON.message);
+        }
+      });
+    }
   </script>
 @endsection
