@@ -12,6 +12,10 @@
                 <div class="col-md-11">
                   <div class="row">
                     <div class="col-md-2">
+                      <label for="name">Name:</label>
+                      <input type="text" class="form-control" id="name" name="name" placeholder="partner name">
+                    </div>
+                    <div class="col-md-2">
                       <label for="orderNo">Order Number:</label>
                       <input type="text" class="form-control" id="orderNo" name="orderNo" placeholder="order number">
                     </div>
@@ -26,10 +30,6 @@
                     <div class="col-md-2">
                       <label for="email">Email Address:</label>
                       <input type="email" class="form-control" id="email" name="email" placeholder="email address">
-                    </div>
-                    <div class="col-md-2">
-                      <label for="name">Name:</label>
-                      <input type="text" class="form-control" id="name" name="name" placeholder="card holder name">
                     </div>
                     <div class="col-md-2">
                       <label for="status">Status:</label>
@@ -65,8 +65,10 @@
                 <th>Date</th>
                 <th>Amount</th>
                 <th>Fee</th>
+                <th>Product Name</th>
+                <th>Card Holder Name</th>
                 <th>Status</th>
-                <th>Agent</th>
+                <th>Domain</th>
               </tr>
               </thead>
               <tbody class="my-tbody">
@@ -81,6 +83,19 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
   <script>
+    function convertDateString( dateString ){
+
+      const date = new Date(dateString);
+      const year = date.getUTCFullYear() % 100; // Get last 2 digits of the year
+      const month = date.getUTCMonth() + 1; // Month is zero-based, so add 1
+      const day = date.getUTCDate();
+      const hours = date.getUTCHours();
+      const minutes = date.getUTCMinutes();
+      const seconds = date.getUTCSeconds();
+
+      return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+    }
+
     $(document).ready(function(){
       $('.get-report').click(function (){
         let dataToSend = {
@@ -96,6 +111,9 @@
           url: window.location.origin + '/api/getReport',
           type: 'POST',
           data: JSON.stringify(dataToSend),
+          headers: {
+            'Authorization': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjMiLCJuYW1lIjoiS0FJU0VSIiwiZG9tYWluIjoiQVBJLktBSVNFUlBBWU1FTlQuQ09NIiwiZmVlIjoiNiIsImV4cCI6NDg0OTU0NjM3MH0.TXhyJpy_33X7HdrMvJsYwEtGLeU4zvOTvLA2Wg-NLdI'
+          },
           contentType: 'application/json',
           success: function(response) {
             var html = '';
@@ -105,12 +123,14 @@
               <td>'+ (i+1) +'</td>\
               <td>'+ (data[i].orderNo == null ? '' : data[i].orderNo) +'</td>\
               <td>'+ (data[i].name == null ? '' : data[i].name) +'</td>\
-              <td>'+ (data[i].email == null ? '' : data[i].email) +'</td>\
-              <td>'+ (data[i].date == null ? '' : data[i].date) +'</td>\
+              <td>'+ (data[i].email_address == null ? '' : data[i].email_address) +'</td>\
+              <td>'+ (data[i].created_at == null ? '' : convertDateString(data[i].created_at)) +'</td>\
               <td>'+ (data[i].amount == null ? '' : data[i].amount) +'</td>\
               <td>'+ ((data[i].fee == null || data[i].fee === 0) ? '' : data[i].fee) +'</td>\
+              <td>'+ ((data[i].product_name == null || data[i].product_name === 0) ? '' : data[i].product_name) +'</td>\
+              <td>'+ ((data[i].card_holder_name == null || data[i].card_holder_name === 0) ? '' : data[i].card_holder_name) +'</td>\
               <td>'+ (data[i].status == null ? '' : data[i].status) +'</td>\
-              <td>'+ (data[i].partner == null ? '' : data[i].partner) +'</td>\
+              <td>'+ (data[i].domain == null ? '' : data[i].domain) +'</td>\
               </tr>';
             }
             $('.my-tbody').html(html);

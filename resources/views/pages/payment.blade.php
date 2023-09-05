@@ -48,6 +48,9 @@
           type: 'POST',
           data: JSON.stringify(dataToSend),
           contentType: 'application/json',
+          headers: {
+            'Authorization': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjMiLCJuYW1lIjoiS0FJU0VSIiwiZG9tYWluIjoiQVBJLktBSVNFUlBBWU1FTlQuQ09NIiwiZmVlIjoiNiIsImV4cCI6NDg0OTU0NjM3MH0.TXhyJpy_33X7HdrMvJsYwEtGLeU4zvOTvLA2Wg-NLdI'
+          },
           success: function(response) {
             if( response['code'] !== 200 ){
               $('.error-box').show();
@@ -55,7 +58,7 @@
               $('.error-box .card-body').html(response['body']);
             }
             else{
-              //window.location.href = response['body'];
+              window.location.href = response['body'];
             }
           },
           error: function(xhr, textStatus, errorThrown) {

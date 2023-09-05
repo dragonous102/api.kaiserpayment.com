@@ -193,4 +193,40 @@ class Inquiry extends ActionRequest
     return $this->DecryptToken($token, $decryptingKey, $signatureVerificationKey);
   }
 
+  public function ExecuteWithOrderNos(array $uncompletedOrderNo)
+  {
+    if( count($uncompletedOrderNo) == 0 )
+      return null;
+
+    $now = Carbon::now();
+
+    $request = [
+      "apiRequest" => [
+        "requestMessageID" => $this->Guid(),
+        "requestDateTime" => $now->utc()->format('Y-m-d\TH:i:s.v\Z'),
+        "language" => "en-US",
+      ],
+      "advSearchParams" => [
+        "officeId" => [
+          "000002105010090"
+        ],
+      ],
+    ];
+
+    $request["advSearchParams"]["orderNo"] = $uncompletedOrderNo;
+    $stringRequest = json_encode($request);
+
+    //return $stringRequest;
+
+    $response = $this->client->post('api/1.0/Inquiry/transactionList', [
+      'headers' => [
+        'Accept' => 'application/json',
+        'apiKey' => SecurityData::$AccessToken,
+        'Content-Type' => 'application/json; charset=utf-8'
+      ],
+      'body' => $stringRequest
+    ]);
+
+    return $response->getBody()->getContents();
+  }
 }
