@@ -42,57 +42,77 @@ class PaymentController extends Controller
     try {
       if ($request->hasHeader('Authorization')) {
         $apiKey = $request->header('Authorization');
-        $partner = ApiKey::parseJwtToken($apiKey);
-        if(isset($partner['error'])){
+        $apiKeyPartner = ApiKey::parseJwtToken($apiKey);
+        if(isset($apiKeyPartner['error'])){
           $code = 400;
           $message = "Payment Error 2";
-          $body = "Invalid authorization.";
+          $body = "Invalid authorization API key.";
         }
         else{
-          $amount = $request->input("amount");
-          $productName = $request->input("product_name");
-          if(($amount == null || !is_numeric($amount)) && ($productName == null || strlen(trim($productName)) == 0 )){
+          // Check api key validation
+          $dbPartner = Partner::find($apiKeyPartner['id']);
+          if( $dbPartner == null || $dbPartner->status == 0 ){
             $code = 400;
             $message = "Payment Error 3";
-            $body = "Empty request.";
-          }
-          else if($amount == null || !is_numeric($amount) || is_numeric($amount) < 0){
-            $code = 400;
-            $message = "Payment Error 4";
-            $body = "Valid amount is required.";
-          }
-          else if($productName == null || strlen(trim($productName)) == 0){
-            $code = 400;
-            $message = "Payment Error 5";
-            $body = "Product name is required.";
+            $body = "This request to access the Kaiser API was declined.";
           }
           else{
-            $payment = new \Payment();
-            $response = $payment->ExecuteJose($amount, $productName, $partner['domain']);
-            $respData = json_decode($response, true);
-            if (is_array($respData) && isset($respData['data'])) {
-
-              // Save transaction
-              $transaction = new Transaction();
-              $transaction->partner_id = $partner['id'];
-              $transaction->email_address = null;
-              $transaction->card_holder_name = null;
-              $transaction->orderNo = $respData['data']['paymentIncompleteResult']['orderNo'];
-              $transaction->amount = $amount;
-              $transaction->fee = $amount * $partner['fee'] / 100;
-              $transaction->product_name = $productName;
-              $transaction->status = $respData['data']['paymentIncompleteResult']['paymentStatusInfo']['paymentStatus'];
-              $transaction->partner_domain = $partner['domain'];
-              $transaction->save();
-
-              $success = true;
-              $body = $respData['data']['paymentPage']['paymentPageURL'];
-              $message = "paymentPageURL";
+            if( $dbPartner->id != $apiKeyPartner['id'] ||
+              strtolower($dbPartner->name) != strtolower($apiKeyPartner['name']) ||
+              $dbPartner->fee != $apiKeyPartner['fee'] ||
+              strtolower($dbPartner->domain) != strtolower($apiKeyPartner['domain'])){
+              $code = 400;
+              $message = "Payment Error 4";
+              $body = "Invalid authorization API key. It does not match the correct partner's information.";
             }
-            else {
-              $code = 500;
-              $message = "Payment Error 6";
-              $body = $response;
+            else{
+              // Check request parameters
+              $amount = $request->input("amount");
+              $productName = $request->input("product_name");
+              if(($amount == null || !is_numeric($amount)) && ($productName == null || strlen(trim($productName)) == 0 )){
+                $code = 400;
+                $message = "Payment Error 5";
+                $body = "Empty request.";
+              }
+              else if($amount == null || !is_numeric($amount) || is_numeric($amount) < 0){
+                $code = 400;
+                $message = "Payment Error 6";
+                $body = "Valid amount is required.";
+              }
+              else if($productName == null || strlen(trim($productName)) == 0){
+                $code = 400;
+                $message = "Payment Error 7";
+                $body = "Product name is required.";
+              }
+              else{
+                $payment = new \Payment();
+                $response = $payment->ExecuteJose($amount, $productName, $apiKeyPartner['domain']);
+                $respData = json_decode($response, true);
+                if (is_array($respData) && isset($respData['data'])) {
+
+                  // Save transaction
+                  $transaction = new Transaction();
+                  $transaction->partner_id = $apiKeyPartner['id'];
+                  $transaction->email_address = null;
+                  $transaction->card_holder_name = null;
+                  $transaction->orderNo = $respData['data']['paymentIncompleteResult']['orderNo'];
+                  $transaction->amount = $amount;
+                  $transaction->fee = $amount * $apiKeyPartner['fee'] / 100;
+                  $transaction->product_name = $productName;
+                  $transaction->status = $respData['data']['paymentIncompleteResult']['paymentStatusInfo']['paymentStatus'];
+                  $transaction->partner_domain = $apiKeyPartner['domain'];
+                  $transaction->save();
+
+                  $success = true;
+                  $body = $respData['data']['paymentPage']['paymentPageURL'];
+                  $message = "paymentPageURL";
+                }
+                else {
+                  $code = 500;
+                  $message = "Payment Error 8";
+                  $body = $response;
+                }
+              }
             }
           }
         }
@@ -132,130 +152,139 @@ class PaymentController extends Controller
 
     try {
       if ($request->hasHeader('Authorization')) {
-
         $apiKey = $request->header('Authorization');
         $apiKeyPartner = ApiKey::parseJwtToken($apiKey);
-        $partner = null;
         if(isset($apiKeyPartner['error'])){
           $code = 400;
           $message = "Report Error 2";
           $body = "Invalid authorization.";
         }
         else{
-          $partner = Partner::find($apiKeyPartner['id']);
-          if($partner != null && $partner->status == 0){
+          // Check api key validation
+          $dbPartner = Partner::find($apiKeyPartner['id']);
+          if( $dbPartner == null || $dbPartner->status == 0 ){
             $code = 400;
-            $message = "Report Error 3";
-            $body = "Partner ".$apiKeyPartner['name']."'s request to access the Kaiser API was declined.";
+            $message = "Payment Error 3";
+            $body = "This request to access the Kaiser API was declined.";
           }
           else{
-            // Check uncompleted transactions
-            $uncompletedOrderNo = [];
-            $transactions = Transaction::whereNull('card_holder_name')->get();
+            if( $dbPartner->id != $apiKeyPartner['id'] ||
+              strtolower($dbPartner->name) != strtolower($apiKeyPartner['name']) ||
+              $dbPartner->fee != $apiKeyPartner['fee'] ||
+              strtolower($dbPartner->domain) != strtolower($apiKeyPartner['domain'])){
+              $code = 400;
+              $message = "Payment Error 4";
+              $body = "Invalid authorization API key. It does not match the correct partner's information.";
+            }
+            else{
+              // Check uncompleted transactions and update local DB with JDB transactions
+              $uncompletedOrderNo = [];
+              $transactions = Transaction::whereNull('card_holder_name')->get();
 
-            foreach( $transactions as $transaction )
-              $uncompletedOrderNo[] = $transaction->orderNo;
+              foreach( $transactions as $transaction )
+                $uncompletedOrderNo[] = $transaction->orderNo;
 
-            $inquiry = new \Inquiry();
-            $response = $inquiry->ExecuteWithOrderNos($uncompletedOrderNo);
-            if( $response != null ){
-              $respData = json_decode($response, true);
-              if (is_array($respData) && isset($respData['data'])) {
-                $jdbData = $respData['data'];
-                foreach ($jdbData as $item){
-                  $updatedDate = (isset($item['paymentStatusInfo']) && isset($item['paymentStatusInfo']['lastUpdatedDttm'])) ? $item['paymentStatusInfo']['lastUpdatedDttm'] : null;
-                  $paymentStatus = (isset($item['paymentStatusInfo']) && isset($item['paymentStatusInfo']['paymentStatus'])) ? $item['paymentStatusInfo']['paymentStatus'] : null;
-                  $holderName = (isset($item['creditCardDetails']) && isset($item['creditCardDetails']['cardHolderName'])) ? $item['creditCardDetails']['cardHolderName'] : null;
-                  $email = (isset($item['generalPayerDetails']) && isset($item['generalPayerDetails']['email'])) ? $item['generalPayerDetails']['email'] : null;
-                  $orderNo = $item['orderNo'];
-                  $amount = $item['transactionAmount']['amount'];
-                  $transaction = Transaction::where('orderNo', $orderNo)->first();
-                  if( $transaction == null )
-                    continue;
+              $inquiry = new \Inquiry();
+              $response = $inquiry->ExecuteWithOrderNos($uncompletedOrderNo);
+              if( $response != null ){
+                $respData = json_decode($response, true);
+                if (is_array($respData) && isset($respData['data'])) {
+                  $jdbData = $respData['data'];
+                  foreach ($jdbData as $item){
+                    $updatedDate = (isset($item['paymentStatusInfo']) && isset($item['paymentStatusInfo']['lastUpdatedDttm'])) ? $item['paymentStatusInfo']['lastUpdatedDttm'] : null;
+                    $paymentStatus = (isset($item['paymentStatusInfo']) && isset($item['paymentStatusInfo']['paymentStatus'])) ? $item['paymentStatusInfo']['paymentStatus'] : null;
+                    $holderName = (isset($item['creditCardDetails']) && isset($item['creditCardDetails']['cardHolderName'])) ? $item['creditCardDetails']['cardHolderName'] : null;
+                    $email = (isset($item['generalPayerDetails']) && isset($item['generalPayerDetails']['email'])) ? $item['generalPayerDetails']['email'] : null;
+                    $orderNo = $item['orderNo'];
+                    $amount = $item['transactionAmount']['amount'];
+                    $transaction = Transaction::where('orderNo', $orderNo)->first();
+                    if( $transaction == null )
+                      continue;
 
-                  // check transaction is 1 day ago.
-                  $stringDateTimestamp = strtotime($updatedDate);
-                  $timeDifference = now()->timestamp - $stringDateTimestamp;
-                  $daysDifference = $timeDifference / (60 * 60 * 24);
-                  if ($daysDifference >= 1 && $holderName == null)
-                    $holderName = '';
-                  if ($daysDifference >= 1 && $email == null)
-                    $email = '';
+                    // check transaction is 1 day ago.
+                    $stringDateTimestamp = strtotime($updatedDate);
+                    $timeDifference = now()->timestamp - $stringDateTimestamp;
+                    $daysDifference = $timeDifference / (60 * 60 * 24);
+                    if ($daysDifference >= 1 && $holderName == null)
+                      $holderName = '';
+                    if ($daysDifference >= 1 && $email == null)
+                      $email = '';
 
-                  // update local transaction
-                  $transaction->email_address = $email;
-                  $transaction->card_holder_name = $holderName;
-                  $transaction->status = $paymentStatus;
-                  $transaction->amount = $amount;
-                  $transaction->save();
+                    // update local transaction
+                    $transaction->email_address = $email;
+                    $transaction->card_holder_name = $holderName;
+                    $transaction->status = $paymentStatus;
+                    $transaction->amount = $amount;
+                    $transaction->save();
+                  }
                 }
               }
+
+              // search transactions in local DB
+              $query = Transaction::query();
+
+              // Kaiser can get all transactions
+              if( $apiKeyPartner['domain'] != $this->KAISER_DOMAIN ){
+                $query->where('partners.domain', '=', $apiKeyPartner['domain']);
+              }
+
+              if (isset($request->orderNo) && $request->orderNo != null) {
+                $query->where('transactions.orderNo', 'like', '%' . $request->orderNo . '%');
+              }
+
+              if (isset($request->fromDate) && $request->fromDate != null ) {
+                $query->where('transactions.updated_at', '>=', $request->fromDate . ' 00:00:00');
+              }
+
+              if (isset($request->toDate) && $request->toDate != null ) {
+                $query->where('transactions.updated_at', '<=', $request->toDate . ' 23:59:59');
+              }
+
+              if (isset($request->email) && $request->email != null ) {
+                $query->where('transactions.email_address', 'like', '%' . $request->email . '%');
+              }
+
+              if (isset($request->name) && $request->name != null ) {
+                $query->where('partners.name', 'like', '%' . $request->name . '%');
+              }
+
+              if (isset($request->productName) && $request->productName != null ) {
+                $query->where('transactions.product_name', 'like', '%' . $request->productName . '%');
+              }
+
+              if (isset($request->status) && $request->status != null ) {
+                $query->where('transactions.status', '=', $request->status);
+              }
+
+              if (isset($request->maxResults) && $request->maxResults != null ) {
+                $query->limit($request->maxResults);
+              }
+
+              $query->join('partners', 'transactions.partner_id', '=', 'partners.id')
+                ->select(
+                  'transactions.*',
+                  'partners.name as name',
+                  'partners.domain'
+                );
+              $query->orderBy('transactions.created_at', 'desc');
+              //echo $query->toSql();
+              $results = $query->get();
+
+
+              foreach ($results as $result){
+                unset($result->partner_id);
+                unset($result->deleted_at);
+                unset($result->partner_domain);
+
+                $result->status = $this->STATUS_LIST[$result->status];
+                $result->created_at = DateUtil::convertToUTC($result->created_at);
+                $result->updated_at = DateUtil::convertToUTC($result->updated_at);
+              }
+
+              $success = true;
+              $message = "report data";
+              $body = $results;
             }
-
-            // search transactions in local DB
-            $query = Transaction::query();
-
-            // Kaiser can get all transactions
-            if( $apiKeyPartner['domain'] != $this->KAISER_DOMAIN ){
-              $query->where('partners.domain', '=', $apiKeyPartner['domain']);
-            }
-
-            if (isset($request->orderNo) && $request->orderNo != null) {
-              $query->where('transactions.orderNo', 'like', '%' . $request->orderNo . '%');
-            }
-
-            if (isset($request->fromDate) && $request->fromDate != null ) {
-              $query->where('transactions.updated_at', '>=', $request->fromDate . ' 00:00:00');
-            }
-
-            if (isset($request->toDate) && $request->toDate != null ) {
-              $query->where('transactions.updated_at', '<=', $request->toDate . ' 23:59:59');
-            }
-
-            if (isset($request->email) && $request->email != null ) {
-              $query->where('transactions.email_address', 'like', '%' . $request->email . '%');
-            }
-
-            if (isset($request->name) && $request->name != null ) {
-              $query->where('partners.name', 'like', '%' . $request->name . '%');
-            }
-
-            if (isset($request->productName) && $request->productName != null ) {
-              $query->where('transactions.product_name', 'like', '%' . $request->productName . '%');
-            }
-
-            if (isset($request->status) && $request->status != null ) {
-              $query->where('transactions.status', '=', $request->status);
-            }
-
-            if (isset($request->maxResults) && $request->maxResults != null ) {
-              $query->limit($request->maxResults);
-            }
-
-            $query->join('partners', 'transactions.partner_id', '=', 'partners.id')
-              ->select(
-                'transactions.*',
-                'partners.name as name',
-                'partners.domain'
-              );
-            $query->orderBy('transactions.created_at', 'desc');
-            //echo $query->toSql();
-            $results = $query->get();
-
-
-            foreach ($results as $result){
-              unset($result->partner_id);
-              unset($result->deleted_at);
-              unset($result->partner_domain);
-
-              $result->status = $this->STATUS_LIST[$result->status];
-              $result->created_at = DateUtil::convertToUTC($result->created_at);
-              $result->updated_at = DateUtil::convertToUTC($result->updated_at);
-            }
-
-            $success = true;
-            $message = "report data";
-            $body = $results;
           }
         }
       }
