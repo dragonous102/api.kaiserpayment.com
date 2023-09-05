@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Partner;
-use Exception;
-use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
+use App\Library\ApiKey;
 
 class AdminController extends Controller
 {
@@ -15,13 +14,13 @@ class AdminController extends Controller
       $partners = Partner::orderBy('updated_at', 'desc')->get();
 
       foreach ($partners as $partner) {
-        $api_key = $this->getApiKeyFromDomain($partner->domain);
+        $api_key = ApiKey::getApiKeyFromDomain($partner->domain);
 
         if ($api_key === null || strlen(trim($api_key)) == 0) {
           $partner->api_key = 'MISSING';
         } else {
           //echo $api_key;
-          $savedData = $this->parseJwtToken($api_key);
+          $savedData = ApiKey::parseJwtToken($api_key);
           if( isset($savedData['error'])) {
             $partner->api_key = 'INVALID';
             continue;
@@ -64,7 +63,7 @@ class AdminController extends Controller
       if ($existingPartner) {
         $code = 400;
         $message = "A partner with the same name or domain already exists.";
-      } elseif (empty($name) || empty($domain) || empty($fee) || !is_numeric($fee) || empty($status)) {
+      } elseif (empty($name) || empty($domain) || empty($fee) || !is_numeric($fee) || $fee < 0 || empty($status)) {
         $code = 400;
         $message = "Invalid input data. Please provide valid values for all fields.";
       } else {
@@ -77,7 +76,7 @@ class AdminController extends Controller
         ]);
 
         if ($newPartner) {
-          $message = 'API KEY: '.$this->generateJwtToken($newPartner->id, $name, $domain, $fee);
+          $message = 'API KEY: '.ApiKey::generateJwtToken($newPartner->id, $name, $domain, $fee);
           $success = true;
           $body = $newPartner;
         } else {
@@ -116,7 +115,7 @@ class AdminController extends Controller
       }
       else {
         $message = "partner";
-        $existingPartner->api_key = $this->getApiKeyFromDomain($existingPartner->domain);
+        $existingPartner->api_key = ApiKey::getApiKeyFromDomain($existingPartner->domain);
         $success = true;
         $body = $existingPartner;
       }
@@ -149,7 +148,7 @@ class AdminController extends Controller
       $status = $request->input("status");
       $existingPartner = Partner::where('id', $id)->first();
 
-      if (empty($name) || empty($domain) || empty($fee) || !is_numeric($fee) || !is_numeric($status)) {
+      if (empty($name) || empty($domain) || empty($fee) || !is_numeric($fee) || $fee < 0 || !is_numeric($status)) {
         $code = 400;
         $message = "Invalid input data. Please provide valid values for all fields.";
       } else if ($existingPartner == null){
@@ -163,7 +162,7 @@ class AdminController extends Controller
         $existingPartner->status = $status;
 
         $existingPartner->save();
-        $existingPartner->api_key = $this->generateJwtToken($id, $name, $domain, $fee);
+        $existingPartner->api_key = ApiKey::generateJwtToken($id, $name, $domain, $fee);
 
         $success = true;
         $message = "Partner information updated successfully. Please remember to manually update the API_KEY in the environment file to ensure proper functionality.";
@@ -195,8 +194,8 @@ class AdminController extends Controller
       $partner = Partner::find($id);
       if ($partner) {
         $success = true;
-        $partner->forceDelete();
-        $message = "A partner deleted successfully.";
+        $partner->delete();
+        $message = "A partner was deleted successfully.";
       } else {
         $code = 400;
         $message = "Failed to delete partner.";
@@ -227,12 +226,12 @@ class AdminController extends Controller
       $partner = Partner::find($id);
       if ($partner) {
         $success = true;
-        $api_key = $this->getApiKeyFromDomain($partner->domain);
+        $api_key = ApiKey::getApiKeyFromDomain($partner->domain);
 
         if ($api_key === null || strlen(trim($api_key)) == 0) {
           $body = "API KEY was not set in env file and config file.";
         } else {
-          $savedData = $this->parseJwtToken($api_key);
+          $savedData = ApiKey::parseJwtToken($api_key);
           if (
             $savedData['name'] == $partner->name &&
             $savedData['domain'] == $partner->domain &&
@@ -260,49 +259,5 @@ class AdminController extends Controller
       'timestamp' => $timestamp,
       'body' => $body,
     ])->setStatusCode($code);
-  }
-
-  public function generateJwtToken($id, $name, $domain, $fee): string
-  {
-    // Define your secret key (replace with your actual secret key)
-    $secretKey = config('api_keys.JWT_SECRET');
-
-    // Define the token payload (claims)
-    $payload = [
-      'id'=>$id,
-      'name' => $name,
-      'domain' => $domain,
-      'fee' => $fee,
-      'exp' => strtotime('+100 years'),
-    ];
-
-    // Generate the JWT token
-    return JWT::encode($payload, $secretKey, 'HS256');
-  }
-
-  public function parseJwtToken($jwt): array
-  {
-    $result = [];
-    try {
-
-      $decoded = JWT::decode($jwt, config('api_keys.JWT_SECRET'), ['HS256']);
-      $result['id'] = $decoded->id;
-      $result['name'] = $decoded->name;
-      $result['domain'] = $decoded->domain;
-      $result['fee'] = $decoded->fee;
-    } catch (Exception $e) {
-      $result['error'] = $e->getMessage();
-    }
-    return $result;
-  }
-
-  public function getApiKeyFromDomain($domain){
-    $apiKeys = config('api_keys');
-
-    foreach ($apiKeys as $key => $value) {
-      if( $domain == $key )
-        return $value;
-    }
-    return null;
   }
 }

@@ -18,8 +18,9 @@ class CreatePartnerTable extends Migration
         $table->string('name', 255);
         $table->string('domain', 255);
         $table->float('fee');
-        $table->tinyInteger('status'); // 1 for true, 0 for false
-        $table->timestamps(); // Created_at and updated_at columns
+        $table->tinyInteger('status');
+        $table->timestamps();
+        $table->softDeletes(); // Add soft deletes
       });
     }
 
