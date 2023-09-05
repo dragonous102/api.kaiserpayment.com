@@ -1,5 +1,6 @@
 <?php
 namespace App\Library;
+use App\Partner;
 use Exception;
 use Firebase\JWT\JWT;
 
@@ -47,5 +48,23 @@ class ApiKey
         return $value;
     }
     return null;
+  }
+
+  public static function isValidApiKey(Partner $dbPartner, $apiKey){
+    try {
+      $apiKeyPartner = self::parseJwtToken($apiKey);
+      if ($dbPartner == null)
+        return 'NO_API_KEY';
+      elseif ($apiKeyPartner['id'] != $dbPartner->id ||
+        $apiKeyPartner['name'] != $dbPartner->name ||
+        $apiKeyPartner['domain'] != $dbPartner->domain ||
+        $apiKeyPartner['fee'] != $dbPartner->fee)
+        return 'INVALID_API_KEY';
+      else
+        return 'VALID_API_KEY';
+    }
+    catch(\Exception $e){
+      return 'NO_API_KEY';
+    }
   }
 }
