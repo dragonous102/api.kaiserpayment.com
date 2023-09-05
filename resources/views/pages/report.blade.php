@@ -4,6 +4,11 @@
   <div class="container">
     <div class="row">
       <div class="col-md-12">
+        <div class="error-box card border-danger mb-3" style="display: none">
+          <div class="card-header bg-danger text-white">Report error</div>
+          <div class="card-body text-danger">
+          </div>
+        </div>
         <div class="card">
           <div class="card-header">Report</div>
           <div class="card-body">
@@ -116,10 +121,18 @@
           },
           contentType: 'application/json',
           success: function(response) {
-            var html = '';
-            var data = response['body'];
-            for( var i = 0; i < data.length; i++){
-              html += '<tr>\
+            if( response['code'] !== 200 ){
+              $('.error-box').show();
+              $('.error-box .card-header').html(response['message']);
+              $('.error-box .card-body').html(response['body']);
+            }
+            else{
+              $('.error-box').hide();
+
+              var html = '';
+              var data = response['body'];
+              for( var i = 0; i < data.length; i++){
+                html += '<tr>\
               <td>'+ (i+1) +'</td>\
               <td>'+ (data[i].orderNo == null ? '' : data[i].orderNo) +'</td>\
               <td>'+ (data[i].name == null ? '' : data[i].name) +'</td>\
@@ -132,12 +145,16 @@
               <td>'+ (data[i].status == null ? '' : data[i].status) +'</td>\
               <td>'+ (data[i].domain == null ? '' : data[i].domain) +'</td>\
               </tr>';
+              }
+              $('.my-tbody').html(html);
             }
-            $('.my-tbody').html(html);
           },
           error: function(xhr, textStatus, errorThrown) {
             // Handle errors here
             console.log('Error:', errorThrown);
+            $('.error-box').show();
+            $('.error-box .card-header').html(xhr.responseJSON.message);
+            $('.error-box .card-body').html(xhr.responseJSON.body);
           }
         });
       })
