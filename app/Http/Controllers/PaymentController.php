@@ -165,7 +165,7 @@ class PaymentController extends Controller
           if( $dbPartner == null || $dbPartner->status == 0 ){
             $code = 400;
             $message = "Payment Error 3";
-            $body = "This request to access the Kaiser API was declined.";
+            $body = "Invalid authorization API key. This request to access the Kaiser API was declined.";
           }
           else{
             if( $dbPartner->id != $apiKeyPartner['id'] ||
