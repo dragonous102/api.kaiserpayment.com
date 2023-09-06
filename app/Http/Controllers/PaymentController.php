@@ -295,12 +295,16 @@ class PaymentController extends Controller
       }
     }
     catch (GuzzleException $e) {
+      $code = 500;
       $success = true;
-      $message = "report data";
+      $message = "Report Error 1";
+      $body = $e->getMessage();
     }
     catch (\Exception $e) {
+      $code = 500;
       $success = true;
-      $message = "report data";
+      $message = "Report Error 1";
+      $body = $e->getMessage();
     }
 
     return response()->json([
