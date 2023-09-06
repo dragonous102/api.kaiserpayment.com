@@ -279,6 +279,7 @@ class PaymentController extends Controller
                 $result->status = $this->STATUS_LIST[$result->status];
                 $result->created_at = DateUtil::convertToUTC($result->created_at);
                 $result->updated_at = DateUtil::convertToUTC($result->updated_at);
+                $result->fee = $result->fee."";
               }
 
               $success = true;
