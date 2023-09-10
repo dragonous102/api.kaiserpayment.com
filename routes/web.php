@@ -19,6 +19,7 @@ Route::get('/payment-confirmation', 'TestController@confirmation')->name('page.c
 Route::get('/payment-failed', 'TestController@failed')->name('page.cancellation');
 Route::get('/payment-cancellation', 'TestController@cancellation')->name('page.failed');
 Route::get('/payment-backend', 'TestController@backend')->name('page.backend');
+
 Route::get('/admin-dashboard', 'AdminController@showDashboard')->name('page.admin.dashboard');
 Route::post('/admin-add-partner', 'AdminController@addNewPartner')->name('admin.add.partner');
 Route::post('/admin-get-partner', 'AdminController@getPartner')->name('admin.get.partner');
@@ -27,3 +28,8 @@ Route::post('/admin-delete-partner', 'AdminController@deletePartner')->name('adm
 Route::post('/admin-get-apikey', 'AdminController@getApiKey')->name('admin.get.apikey');
 Route::post('/admin-apply-apikey', 'AdminController@applyApiKey')->name('admin.apply.apikey');
 
+Route::get('/fireblocks-test', 'FireBlocksController@showTestPage')->name('page.fireblocks.test');
+Route::post('/fireblocks-get-account', 'FireBlocksController@getAccount')->name('fireblocks.getAccount');
+Route::post('/fireblocks-get-new-btc-deposit-address', 'FireBlocksController@getNewDepositAddress');
+Route::post('/fireblocks-get-account-balance', 'FireBlocksController@getAccountBalance');
+Route::post('/fireblocks-get-supported-assets', 'FireBlocksController@getSupportedAssets');

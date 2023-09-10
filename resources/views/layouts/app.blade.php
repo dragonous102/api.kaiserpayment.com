@@ -30,6 +30,9 @@
         <li class="nav-item">
           <a class="nav-link" href="{{ route('page.admin.dashboard') }}">Admin</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ route('page.fireblocks.test') }}">FireBlocks Test</a>
+        </li>
       </ul>
     </div>
   </div>
