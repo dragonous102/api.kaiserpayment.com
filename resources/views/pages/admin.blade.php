@@ -16,8 +16,8 @@
         <th>Partner Name</th>
         <th>Partner Domain</th>
         <th>Fee(%)</th>
-        <th>API Key</th>
-        <th>Status</th>
+        <th style="width: 80px;">API Key</th>
+        <th style="width: 100px;">Status</th>
         <th>Update Date</th>
         <th>Operation</th>
       </tr>
@@ -26,7 +26,7 @@
           <input type="text" class="form-control" id="new_name" placeholder="New Partner Name">
         </td>
         <td>
-          <input type="text" class="form-control" id="new_domain" placeholder="NewPartner.example.com">
+          <input type="text" class="form-control" id="new_domain" placeholder="New.example.com">
         </td>
         <td>
           <input type="number" class="form-control" id="new_fee" placeholder="fee %" style="width: 100px;">
@@ -41,7 +41,7 @@
           </select>
         </td>
         <td></td>
-        <td>
+        <td style="width: 310px;">
           <button class="btn btn-primary" onclick="addPartner()">
             <i class="fas fa-plus-circle"></i>
             Add New Partner</button>
@@ -101,7 +101,7 @@
       </tfoot>
     </table>
   </div>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="{{ asset('js/http_code.jquery.com_jquery-3.6.0.js', config('env') == 'local') }}"></script>
   <script>
     $(document).ready(function(){
     });

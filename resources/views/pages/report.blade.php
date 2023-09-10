@@ -14,7 +14,7 @@
           <div class="card-body">
             <form class="mb-3">
               <div class="row">
-                <div class="col-md-11">
+                <div class="col-md-9">
                   <div class="row">
                     <div class="col-md-2">
                       <label for="name">Name:</label>
@@ -54,8 +54,9 @@
                     </div>
                   </div>
                 </div>
-                <div class="col-md-1">
-                  <button type="button" class="get-report btn btn-primary mt-3">Search</button>
+                <div class="col-md-3">
+                  <button type="button" class="get-report btn btn-primary mt-3"><i class="fas fa-search"></i> Search</button>
+                  <button type="button" class="get-report btn btn-success mt-3"><i class="fas fa-download"></i> Download xlsx</button>
                 </div>
               </div>
             </form>
@@ -85,7 +86,7 @@
     </div>
   </div>
 
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="{{ asset('js/http_code.jquery.com_jquery-3.6.0.js', config('env') == 'local') }}"></script>
 
   <script>
     function convertDateString( dateString ){
