@@ -49,7 +49,7 @@
           data: JSON.stringify(dataToSend),
           contentType: 'application/json',
           headers: {
-            'Authorization': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjEiLCJuYW1lIjoiQk9SSVMgTSIsImRvbWFpbiI6IkxPQ0FMSE9TVCIsImZlZSI6IjciLCJleHAiOjQ4NTAxMjgwMjd9.J6V_6lWoGHptqlMPvQlozsa79SfYp5jzqFK83mybhbs'
+            'Authorization': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjEiLCJuYW1lIjoiS0FJU0VSIiwiZG9tYWluIjoiQVBJLktBSVNFUlBBWU1FTlQuQ09NIiwiZmVlIjoiNyIsImV4cCI6NDg0OTU3OTQxNH0.Tqlf_hxqvYu9u-Qw4pUMdHV507CZm48HUnVvfxC8DsQ'
           },
           success: function(response) {
             if( response['code'] !== 200 ){
