@@ -99,7 +99,7 @@
       };
 
       $.ajax({
-        url: window.location.origin + '/fireblocks-get-new-btc-deposit-address',
+        url: window.location.origin + '/fireblocks-getNewDepositAddress',
         type: 'POST',
         data: JSON.stringify(dataToSend),
         contentType: 'application/json',

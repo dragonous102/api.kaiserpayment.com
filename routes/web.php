@@ -1,6 +1,6 @@
 <?php
   use App\Http\Controllers\LanguageController;
-use Illuminate\Support\Facades\Route;
+  use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -12,24 +12,25 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
-Route::get('/', 'TestController@home')->name('page.home');
-Route::get('/paymentPage', 'TestController@payment')->name('page.payment');
-Route::get('/reportPage', 'TestController@report')->name('page.report');
-Route::get('/payment-confirmation', 'TestController@confirmation')->name('page.confirmation');
-Route::get('/payment-failed', 'TestController@failed')->name('page.cancellation');
-Route::get('/payment-cancellation', 'TestController@cancellation')->name('page.failed');
-Route::get('/payment-backend', 'TestController@backend')->name('page.backend');
+Route::get('/', 'JdbController@home')->name('page.home');
+Route::get('/paymentPage', 'JdbController@payment')->name('page.payment');
+Route::get('/reportPage', 'JdbController@report')->name('page.report');
+Route::get('/payment-confirmation', 'JdbController@confirmation')->name('page.confirmation');
+Route::get('/payment-failed', 'JdbController@failed')->name('page.cancellation');
+Route::get('/payment-cancellation', 'JdbController@cancellation')->name('page.failed');
+Route::get('/payment-backend', 'JdbController@backend')->name('page.backend');
 
-Route::get('/admin-dashboard', 'AdminController@showDashboard')->name('page.admin.dashboard');
-Route::post('/admin-add-partner', 'AdminController@addNewPartner')->name('admin.add.partner');
-Route::post('/admin-get-partner', 'AdminController@getPartner')->name('admin.get.partner');
-Route::post('/admin-update-partner', 'AdminController@updatePartner')->name('admin.update.partner');
-Route::post('/admin-delete-partner', 'AdminController@deletePartner')->name('admin.delete.partner');
-Route::post('/admin-get-apikey', 'AdminController@getApiKey')->name('admin.get.apikey');
-Route::post('/admin-apply-apikey', 'AdminController@applyApiKey')->name('admin.apply.apikey');
+Route::get('/apikey-dashboard', 'ApiKeyController@showDashboard')->name('page.apikey.dashboard');
+Route::post('/apikey-add-partner', 'ApiKeyController@addNewPartner')->name('apikey.add.partner');
+Route::post('/apikey-get-partner', 'ApiKeyController@getPartner')->name('apikey.get.partner');
+Route::post('/apikey-update-partner', 'ApiKeyController@updatePartner')->name('apikey.update.partner');
+Route::post('/apikey-delete-partner', 'ApiKeyController@deletePartner')->name('apikey.delete.partner');
+Route::post('/apikey-get-apikey', 'ApiKeyController@getApiKey')->name('apikey.get.apikey');
+Route::post('/apikey-apply-apikey', 'ApiKeyController@applyApiKey')->name('apikey.apply.apikey');
 
+Route::get('/fireblocks-showGetAddressPage', 'FireBlocksController@showGetAddressPage')->name('page.fireblocks.showGetAddressPage');
+Route::get('/fireblocks-showReportPage', 'FireBlocksController@showReportPage')->name('page.fireblocks.showReportPage');
 Route::get('/fireblocks-test', 'FireBlocksController@showTestPage')->name('page.fireblocks.test');
 Route::post('/fireblocks-get-account', 'FireBlocksController@getAccount')->name('fireblocks.getAccount');
-Route::post('/fireblocks-get-new-btc-deposit-address', 'FireBlocksController@getNewDepositAddress');
 Route::post('/fireblocks-get-account-balance', 'FireBlocksController@getAccountBalance');
 Route::post('/fireblocks-get-supported-assets', 'FireBlocksController@getSupportedAssets');

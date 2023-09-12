@@ -12,6 +12,7 @@ class Partner extends Model
     'name',
     'domain',
     'fee',
+    'crypto_fee',
     'status',
   ];
 

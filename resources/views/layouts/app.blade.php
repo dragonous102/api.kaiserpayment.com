@@ -21,17 +21,26 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ml-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="{{ route('page.payment') }}">Payment</a>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">JDB Payment</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ route('page.payment') }}">Payment</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{{ route('page.report') }}">Report</a></li>
+          </ul>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ route('page.report') }}">Report</a>
+          <a class="nav-link" href="{{ route('page.apikey.dashboard') }}">API Keys</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ route('page.admin.dashboard') }}">Admin</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ route('page.fireblocks.test') }}">FireBlocks Test</a>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Fireblocks Payment</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ route('page.fireblocks.showGetAddressPage') }}">Get New Deposit Address</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{{ route('page.fireblocks.showReportPage') }}">Report</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{{ route('page.fireblocks.test') }}">Fireblocks Test</a></li>
+          </ul>
         </li>
       </ul>
     </div>
@@ -50,9 +59,12 @@
 
 <!-- Add Bootstrap JS and Popper.js (required for some Bootstrap components) -->
 <!-- jQuery -->
-<script src="{{ asset('js/http_code.jquery.com_jquery-3.6.0.js', config('env') == 'local') }}"></script>
-
+{{--<script src="{{ asset('js/http_code.jquery.com_jquery-3.6.0.js', config('env') == 'local') }}"></script>--}}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Popper -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js"></script>
 <!-- Bootstrap JS -->
-<script src="{{ asset('js/http_cdn.jsdelivr.net_npm_bootstrap@5.3.0_dist_js_bootstrap.js', config('env') == 'local') }}"></script>
+{{--<script src="{{ asset('js/http_cdn.jsdelivr.net_npm_bootstrap@5.3.0_dist_js_bootstrap.js', config('env') == 'local') }}"></script>--}}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 </body>
 </html>

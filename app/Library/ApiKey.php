@@ -33,6 +33,7 @@ class ApiKey
       $result['id'] = $decoded->id;
       $result['name'] = $decoded->name;
       $result['domain'] = $decoded->domain;
+      /*$result['crypto_fee'] = $decoded->crypto_fee;*/
       $result['fee'] = $decoded->fee;
     } catch (Exception $e) {
       $result['error'] = $e->getMessage();
@@ -50,21 +51,20 @@ class ApiKey
     return null;
   }
 
-  public static function isValidApiKey(Partner $dbPartner, $apiKey){
-    try {
-      $apiKeyPartner = self::parseJwtToken($apiKey);
-      if ($dbPartner == null)
-        return 'NO_API_KEY';
-      elseif ($apiKeyPartner['id'] != $dbPartner->id ||
-        $apiKeyPartner['name'] != $dbPartner->name ||
-        $apiKeyPartner['domain'] != $dbPartner->domain ||
-        $apiKeyPartner['fee'] != $dbPartner->fee)
-        return 'INVALID_API_KEY';
-      else
-        return 'VALID_API_KEY';
-    }
-    catch(\Exception $e){
-      return 'NO_API_KEY';
-    }
+  public static function isValidApiKey(?Partner $dbPartner, $apiKeyPartner): string
+  {
+    if ($apiKeyPartner == null)
+      return 'UN_REGISTERED_API_KEY';
+
+    if ($dbPartner === null)
+      return 'UN_REGISTERED_API_KEY';
+    elseif ($apiKeyPartner['id'] != $dbPartner->id ||
+      $apiKeyPartner['name'] != $dbPartner->name ||
+      /*$apiKeyPartner['crypto_fee'] != $dbPartner->crypto_fee ||*/
+      $apiKeyPartner['domain'] != $dbPartner->domain ||
+      $apiKeyPartner['fee'] != $dbPartner->fee)
+      return 'NOT_MATCHED_API_KEY';
+    else
+      return 'VALID_API_KEY';
   }
 }

@@ -19,3 +19,4 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 Route::post('/prepayment', 'PaymentController@prePayment')->name('prePayment');
 Route::post('/getReport', 'PaymentController@getReport')->name('getReport');
+Route::post('/getAddress', 'FireBlocksController@getNewDepositAddress')->name('getAddress');

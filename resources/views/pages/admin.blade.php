@@ -115,7 +115,7 @@
       };
 
       $.ajax({
-        url: window.location.origin + '/admin-add-partner',
+        url: window.location.origin + '/apikey-add-partner',
         type: 'POST',
         data: JSON.stringify(dataToSend),
         contentType: 'application/json',
@@ -184,7 +184,7 @@
       };
 
       $.ajax({
-        url: window.location.origin + '/admin-get-partner',
+        url: window.location.origin + '/apikey-get-partner',
         type: 'POST',
         data: JSON.stringify(dataToSend),
         contentType: 'application/json',
@@ -229,7 +229,7 @@
       };
 
       $.ajax({
-        url: window.location.origin + '/admin-delete-partner',
+        url: window.location.origin + '/apikey-delete-partner',
         type: 'POST',
         data: JSON.stringify(dataToSend),
         contentType: 'application/json',
@@ -264,7 +264,7 @@
       };
 
       $.ajax({
-        url: window.location.origin + '/admin-get-apikey',
+        url: window.location.origin + '/apikey-get-apikey',
         type: 'POST',
         data: JSON.stringify(dataToSend),
         contentType: 'application/json',
@@ -323,7 +323,7 @@
       };
 
       $.ajax({
-        url: window.location.origin + '/admin-apply-apikey',
+        url: window.location.origin + '/apikey-apply-apikey',
         type: 'POST',
         data: JSON.stringify(dataToSend),
         contentType: 'application/json',
