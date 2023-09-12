@@ -2,10 +2,11 @@
 
 @section('content')
   <div class="container">
+    <h5 class="text-secondary mb-3">https://api.kaiserpayment.com/api/getCryptoPaymentReport</h5>
     <div class="row justify-content-center">
       <div class="col-md-12">
         <div class="card">
-          <div class="card-header">Crypto Payment Report</div>
+          <div class="card-header">Parameters of Get Crypto Payment Report API</div>
           <div class="card-body">
             <div class="row">
               <div class="col-md-9">
@@ -48,7 +49,7 @@
                 </div>
               </div>
               <div class="col-md-3">
-                <button type="button" id="btnSearch" onclick="searchReport()" class="btn btn-primary mt-4"><i class="fas fa-search"></i> Search</button>
+                <button type="button" id="btnSearch" onclick="searchReport()" class="btn btn-primary mt-4"><i class="fas fa-search"></i> API Call</button>
                 <button type="button" class="btn btn-success mt-4"><i class="fas fa-download"></i> Download xlsx</button>
               </div>
             </div>
@@ -96,7 +97,7 @@
   <script>
     function searchReport() {
       $.ajax({
-        url: '/your-api-endpoint', // Replace with your API endpoint
+        url: '/getCryptoPaymentReport', // Replace with your API endpoint
         type: 'POST',
         data: {
           order_id: $('#order_id').val(),

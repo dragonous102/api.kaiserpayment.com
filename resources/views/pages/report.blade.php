@@ -11,7 +11,7 @@
           </div>
         </div>
         <div class="card">
-          <div class="card-header">Report</div>
+          <div class="card-header">Search Parameters of Get JDB Payment Report API</div>
           <div class="card-body">
             <form class="mb-3">
               <div class="row">
@@ -56,7 +56,7 @@
                   </div>
                 </div>
                 <div class="col-md-3">
-                  <button type="button" class="get-report btn btn-primary mt-3"><i class="fas fa-search"></i> Search</button>
+                  <button type="button" class="get-report btn btn-primary mt-3"><i class="fas fa-search"></i> API Call</button>
                   <button type="button" class="get-report btn btn-success mt-3"><i class="fas fa-download"></i> Download xlsx</button>
                 </div>
               </div>

@@ -13,7 +13,7 @@
     </div>
     <div class="col-md-6">
       <div class="card">
-        <div class="card-header">JDB Payment</div>
+        <div class="card-header">Parameters of JDB pre-Payment API</div>
         <div class="card-body" style="height: 220px;">
           <form>
             @csrf
@@ -28,7 +28,7 @@
           </form>
         </div>
         <div class="card-footer">
-          <button type="button" class="pre-payment btn btn-primary">Payment</button>
+          <button type="button" class="pre-payment btn btn-primary">Call API</button>
         </div>
       </div>
     </div>

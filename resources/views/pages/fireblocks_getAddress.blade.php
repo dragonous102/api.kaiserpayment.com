@@ -2,11 +2,11 @@
 
 @section('content')
   <div class="container">
-    <h5 class="text-secondary mb-3">https://api.kaiserpayment.com/api/getAddress</h5>
+    <h5 class="text-secondary mb-3">https://api.kaiserpayment.com/api/getCryptoPaymentAddress</h5>
     <div class="row justify-content-center">
       <div class="col-md-6">
         <div class="card mb-3">
-          <div class="card-header">Generate New Crypto Deposit Address</div>
+          <div class="card-header">Parameters of Get Crypto Payment Address API</div>
           <div class="card-body" style="height: 320px;">
             <div class="row mt-3">
               <div>
@@ -46,7 +46,7 @@
                 </form>
                 <div class="mt-5" align="right">
                   <button type="button" id="btnGetAddress" onclick="getAddress()" class="btn btn-primary">
-                    &nbsp; Get New Deposit Address
+                    &nbsp; Call API
                   </button>
                 </div>
               </div>
@@ -71,14 +71,14 @@
     function setLoadingState() {
       $("#btnGetAddress").attr("disabled", true); // Disable the button
       $("#btnGetAddress").html(
-        '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Get New Deposit Address'
+        '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Call API'
       ); // Add the spinner
     }
 
     // Function to revert the button to the normal state
     function setNormalState() {
       $("#btnGetAddress").removeAttr("disabled"); // Remove the disabled attribute
-      $("#btnGetAddress").html("Get New Deposit Address"); // Restore the original text
+      $("#btnGetAddress").html("Call API"); // Restore the original text
     }
 
     function getAddress() {
@@ -91,7 +91,7 @@
       };
 
       $.ajax({
-        url: window.location.origin + '/api/getAddress', // Replace with your API endpoint
+        url: window.location.origin + '/api/getCryptoPaymentAddress', // Replace with your API endpoint
         type: 'POST',
         data: JSON.stringify(dataToSend),
         contentType: 'application/json',

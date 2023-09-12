@@ -24,22 +24,22 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">JDB Payment</a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{{ route('page.payment') }}">JDB Payment</a></li>
+            <li><a class="dropdown-item" href="{{ route('page.payment') }}">JDB pre-Payment API</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="{{ route('page.report') }}">JDB Payment Report</a></li>
+            <li><a class="dropdown-item" href="{{ route('page.report') }}">Get JDB Payment Report API</a></li>
           </ul>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{{ route('page.apikey.dashboard') }}">API Keys</a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Fireblocks Payment</a>
+          <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Crypto Payment</a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{{ route('page.fireblocks.showGetAddressPage') }}">Get New Crypto Deposit Address</a></li>
+            <li><a class="dropdown-item" href="{{ route('page.fireblocks.showGetAddressPage') }}">Get Crypto Payment Address API</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="{{ route('page.fireblocks.showReportPage') }}">Crypto Payment Report</a></li>
+            <li><a class="dropdown-item" href="{{ route('page.fireblocks.showReportPage') }}">Get Crypto Payment Report API</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="{{ route('page.fireblocks.test') }}">Fireblocks Test</a></li>
+            <li><a class="dropdown-item" href="{{ route('page.fireblocks.test') }}">Fireblocks Test Page</a></li>
           </ul>
         </li>
       </ul>

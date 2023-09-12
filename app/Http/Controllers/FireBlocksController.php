@@ -22,7 +22,7 @@ class FireBlocksController extends Controller
     return view('pages.fireblocks_getAddress');
   }
 
-  public function getNewDepositAddress(Request $request){
+  public function getCryptoPaymentAddress(Request $request){
     $code = 200;
     $success = false;
     $timestamp = now()->toIso8601String();
