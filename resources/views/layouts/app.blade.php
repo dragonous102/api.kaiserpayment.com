@@ -24,9 +24,9 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">JDB Payment</a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{{ route('page.payment') }}">Payment</a></li>
+            <li><a class="dropdown-item" href="{{ route('page.payment') }}">JDB Payment</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="{{ route('page.report') }}">Report</a></li>
+            <li><a class="dropdown-item" href="{{ route('page.report') }}">JDB Payment Report</a></li>
           </ul>
         </li>
         <li class="nav-item">
@@ -35,9 +35,9 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Fireblocks Payment</a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{{ route('page.fireblocks.showGetAddressPage') }}">Get New Deposit Address</a></li>
+            <li><a class="dropdown-item" href="{{ route('page.fireblocks.showGetAddressPage') }}">Get New Crypto Deposit Address</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="{{ route('page.fireblocks.showReportPage') }}">Report</a></li>
+            <li><a class="dropdown-item" href="{{ route('page.fireblocks.showReportPage') }}">Crypto Payment Report</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="{{ route('page.fireblocks.test') }}">Fireblocks Test</a></li>
           </ul>

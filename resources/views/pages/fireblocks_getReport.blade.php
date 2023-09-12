@@ -5,7 +5,7 @@
     <div class="row justify-content-center">
       <div class="col-md-12">
         <div class="card">
-          <div class="card-header">Report</div>
+          <div class="card-header">Crypto Payment Report</div>
           <div class="card-body">
             <div class="row">
               <div class="col-md-9">
@@ -39,7 +39,7 @@
                       </select>
                     </div>
                   </div>
-                  <div class="col-md-2">
+                  <div class="col-md-4">
                     <div class="form-group">
                       <label for="address">Address</label>
                       <input type="text" class="form-control" id="address" name="address" placeholder="Address">
@@ -48,8 +48,8 @@
                 </div>
               </div>
               <div class="col-md-3">
-                <button type="button" id="btnSearch" onclick="searchReport()" class="btn btn-primary mt-3"><i class="fas fa-search"></i> Search</button>
-                <button type="button" class="btn btn-success mt-3"><i class="fas fa-download"></i> Download xlsx</button>
+                <button type="button" id="btnSearch" onclick="searchReport()" class="btn btn-primary mt-4"><i class="fas fa-search"></i> Search</button>
+                <button type="button" class="btn btn-success mt-4"><i class="fas fa-download"></i> Download xlsx</button>
               </div>
             </div>
             <hr class="mt-0">
@@ -82,17 +82,19 @@
           </div>
         </div>
       </div>
+      <div class="col-md-12 mt-3">
+        <div class="card">
+          <div class="card-header">API Response</div>
+          <div class="card-body api-response"></div>
+        </div>
+      </div>
     </div>
   </div>
   <!-- jQuery -->
   {{--<script src="{{ asset('js/http_code.jquery.com_jquery-3.6.0.js', config('env') == 'local') }}"></script>--}}
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
-    // Function to handle the search request and update the result table and pagination
     function searchReport() {
-      // Perform the AJAX request to fetch the search results
-      // Update the 'searchResults' and 'pagination' elements with the results
-      // Example AJAX request:
       $.ajax({
         url: '/your-api-endpoint', // Replace with your API endpoint
         type: 'POST',
@@ -106,13 +108,16 @@
           page_size: 10, // Example page size
         },
         success: function(response) {
-          // Update the 'searchResults' and 'pagination' elements here
-          // Example:
+          var formattedJSON = JSON.stringify(response, null, 2);
+          $(".api-response").html('<pre>' + formattedJSON + '</pre>');
+
           $('#searchResults').html(response.resultsHtml);
           $('#pagination').html(response.paginationHtml);
         },
         error: function(xhr, textStatus) {
-          console.log('Error:', xhr.responseJSON.message);
+          var formattedJSON = JSON.stringify(response, null, 2);
+          $(".api-response").html('<pre>' + formattedJSON + '</pre>');
+          $(".api-response").removeClass('text-danger').removeClass('text-success').addClass('text-danger');
         }
       });
     }

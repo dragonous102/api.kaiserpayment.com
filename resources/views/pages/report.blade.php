@@ -2,6 +2,7 @@
 
 @section('content')
   <div class="container">
+    <h5 class="text-secondary mb-3">https://api.kaiserpayment.com/api/getReport</h5>
     <div class="row">
       <div class="col-md-12">
         <div class="error-box card border-danger mb-3" style="display: none">
@@ -82,6 +83,12 @@
             </table>
           </div>
         </div>
+        <div class="col-md-12 mt-3">
+          <div class="card">
+            <div class="card-header">API Response</div>
+            <div class="card-body api-response"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -122,13 +129,18 @@
           },
           contentType: 'application/json',
           success: function(response) {
+            var formattedJSON = JSON.stringify(response, null, 2);
+            $(".api-response").html('<pre>' + formattedJSON + '</pre>');
+
             if( response['code'] !== 200 ){
               $('.error-box').show();
               $('.error-box .card-header').html(response['message']);
               $('.error-box .card-body').html(response['body']);
+              $(".api-response").removeClass('text-danger').removeClass('text-success').addClass('text-danger');
             }
             else{
               $('.error-box').hide();
+              $(".api-response").removeClass('text-danger').removeClass('text-success').addClass('text-success');
 
               var html = '';
               var data = response['body'];
@@ -152,7 +164,10 @@
           },
           error: function(xhr, textStatus, errorThrown) {
             // Handle errors here
-            console.log('Error:', errorThrown);
+            var formattedJSON = JSON.stringify(xhr.responseJSON, null, 2);
+            $(".api-response").html('<pre>' + formattedJSON + '</pre>');
+            $(".api-response").removeClass('text-danger').removeClass('text-success').addClass('text-danger');
+
             $('.error-box').show();
             $('.error-box .card-header').html(xhr.responseJSON.message);
             $('.error-box .card-body').html(xhr.responseJSON.body);

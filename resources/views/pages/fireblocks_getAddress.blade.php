@@ -2,11 +2,12 @@
 
 @section('content')
   <div class="container">
+    <h5 class="text-secondary mb-3">https://api.kaiserpayment.com/api/getAddress</h5>
     <div class="row justify-content-center">
       <div class="col-md-6">
         <div class="card mb-3">
-          <div class="card-header">Generate New Deposit Address</div>
-          <div class="card-body">
+          <div class="card-header">Generate New Crypto Deposit Address</div>
+          <div class="card-body" style="height: 320px;">
             <div class="row mt-3">
               <div>
                 <!-- Form for getting a new deposit address -->
@@ -42,57 +43,21 @@
                       </select>
                     </div>
                   </div>
-                  <div class="form-group" align="right">
-                    <button type="button" id="btnGetAddress" onclick="getAddress()" class="btn btn-primary">
-                      &nbsp; Get New Deposit Address
-                    </button>
-                  </div>
                 </form>
+                <div class="mt-5" align="right">
+                  <button type="button" id="btnGetAddress" onclick="getAddress()" class="btn btn-primary">
+                    &nbsp; Get New Deposit Address
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
       <div class="col-md-6">
-        <div class="card mb-3">
-          <div class="card-header result-header">Result:</div>
-          <div class="card-body">
-            <div class="row mt-3">
-              <div>
-                <!-- Form for getting a new deposit address -->
-                <form>
-                  <div class="form-group row">
-                    <label for="order_id" class="col-sm-2 col-form-label">Order Id</label>
-                    <div class="col-sm-10">
-                      <input type="text" readonly class="form-control" id="order_id" name="orderId" placeholder="Order Id">
-                    </div>
-                  </div>
-                  <div class="form-group row">
-                    <label for="result_currency" class="col-sm-2 col-form-label">Currency</label>
-                    <div class="col-sm-10">
-                      <input type="text" readonly class="form-control" id="result_currency" name="result_currency" placeholder="Currency">
-                    </div>
-                  </div>
-                  <div class="form-group row">
-                    <label for="address" class="col-sm-2 col-form-label">Address</label>
-                    <div class="col-sm-10">
-                      <input type="text" readonly class="form-control" id="address" name="address" placeholder="Address">
-                    </div>
-                  </div>
-                  <div class="form-group row">
-                    <label for="status" class="col-sm-2 col-form-label">Status</label>
-                    <div class="col-sm-10">
-                      <input type="text" readonly class="form-control" id="status" name="status" placeholder="Status">
-                    </div>
-                  </div>
-                  <div class="form-group row">
-                    <label for="status" class="col-sm-2 col-form-label">Reason</label>
-                    <div class="failed-reason col-sm-10 text-danger mt-2">
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
+        <div class="card">
+          <div class="card-header">API Response</div>
+          <div class="card-body api-response" style="height: 320px;">
           </div>
         </div>
       </div>
@@ -136,32 +101,21 @@
         },
         success: function (response) {
           setNormalState();
+          var formattedJSON = JSON.stringify(response, null, 2);
+          $(".api-response").html('<pre>' + formattedJSON + '</pre>');
+
           if (response.code === 200) {
-            $('.result-header').html('<span class="text-success">Result: '+ response.message +'</span>');
-            $('#order_id').removeClass('text-danger').removeClass('text-danger').addClass('text-success').val(response.body.order_id);
-            $('#result_currency').removeClass('text-danger').removeClass('text-danger').addClass('text-success').val(response.body.currency);
-            $('#address').removeClass('text-danger').removeClass('text-danger').addClass('text-success').val(response.body.address);
-            $('#status').removeClass('text-danger').removeClass('text-danger').addClass('text-success').val(response.body.status);
-            $('.failed-reason').html('');
+            $(".api-response").removeClass('text-danger').removeClass('text-success').addClass('text-success');
           }
           else {
-            $('.result-header').html('<span class="text-danger">Result: Failed</span>');
-            $('#order_id').removeClass('text-danger').removeClass('text-danger').addClass('text-danger').val(response.body.order_id);
-            $('#result_currency').removeClass('text-danger').removeClass('text-danger').addClass('text-danger').val(response.body.currency);
-            $('#address').removeClass('text-danger').removeClass('text-danger').addClass('text-danger').val(response.body.address);
-            $('#status').removeClass('text-danger').removeClass('text-danger').addClass('text-danger').val(response.body.status);
-            $('.failed-reason').html(xhr.responseJSON?.message + ' ' + xhr.responseJSON?.body?.reason);
+            $(".api-response").removeClass('text-danger').removeClass('text-success').addClass('text-danger');
           }
         },
         error: function (xhr, textStatus) {
           setNormalState();
-          $('.result-header').html('<span class="text-danger">Result: Failed</span>');
-          $('#order_id').removeClass('text-danger').removeClass('text-danger').addClass('text-danger').val(xhr.responseJSON?.body?.order_id);
-          $('#result_currency').removeClass('text-danger').removeClass('text-danger').addClass('text-danger').val(xhr.responseJSON?.body?.currency);
-          $('#address').removeClass('text-danger').removeClass('text-danger').addClass('text-danger').val(xhr.responseJSON?.body?.address);
-          $('#status').removeClass('text-danger').removeClass('text-danger').addClass('text-danger').val(xhr.responseJSON?.body?.status);
-          $('.failed-reason').html(xhr.responseJSON?.message + ' ' + ((xhr?.responseJSON?.body?.reason) ? (xhr?.responseJSON?.body?.reason) : ''));
-          console.log(xhr);
+          var formattedJSON = JSON.stringify(xhr.responseJSON, null, 2);
+          $(".api-response").html('<pre>' + formattedJSON + '</pre>');
+          $(".api-response").removeClass('text-danger').removeClass('text-success').addClass('text-danger');
         },
       });
     }

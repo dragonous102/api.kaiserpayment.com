@@ -2,16 +2,19 @@
 
 @section('content')
   <div class="row justify-content-center">
-    <div class="col-md-6">
-      <div class="error-box card border-danger mb-3" style="display: none">
-        <div class="card-header bg-danger text-white">Payment Unsuccessful</div>
+    <h5 class="text-secondary mb-3">https://api.kaiserpayment.com/api/prepayment</h5>
+    <div class="row">
+      <div class="error-box card border-danger mb-3 col-md-12" style="display: none">
+        <div class="card-header bg-danger text-white" style="display: none;">Payment Unsuccessful</div>
         <div class="card-body text-danger">
           <p>Payment was unsuccessful.</p>
         </div>
       </div>
+    </div>
+    <div class="col-md-6">
       <div class="card">
-        <div class="card-header">Payment</div>
-        <div class="card-body">
+        <div class="card-header">JDB Payment</div>
+        <div class="card-body" style="height: 220px;">
           <form>
             @csrf
             <div class="mb-3">
@@ -22,8 +25,20 @@
               <label for="product_name" class="form-label">Product Name</label>
               <input type="text" class="form-control" id="product_name" name="product_name" placeholder="Enter product name">
             </div>
-            <button type="button" class="pre-payment btn btn-primary">Payment</button>
           </form>
+        </div>
+        <div class="card-footer">
+          <button type="button" class="pre-payment btn btn-primary">Payment</button>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">API Response</div>
+        <div class="card-body api-response" style="height: 220px;">
+        </div>
+        <div class="card-footer" align="right">
+          <a type="button" class="redirect-btn btn btn-success">Redirect</a>
         </div>
       </div>
     </div>
@@ -52,17 +67,26 @@
             'Authorization': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjEiLCJuYW1lIjoiS0FJU0VSIiwiZG9tYWluIjoiQVBJLktBSVNFUlBBWU1FTlQuQ09NIiwiZmVlIjoiNyIsImV4cCI6NDg0OTU3OTQxNH0.Tqlf_hxqvYu9u-Qw4pUMdHV507CZm48HUnVvfxC8DsQ'
           },
           success: function(response) {
+            var formattedJSON = JSON.stringify(response, null, 2);
+            $(".api-response").html('<pre>' + formattedJSON + '</pre>');
+
             if( response['code'] !== 200 ){
               $('.error-box').show();
               $('.error-box .card-header').html(response['message']);
               $('.error-box .card-body').html(response['body']);
+              $(".api-response").removeClass('text-danger').removeClass('text-success').addClass('text-danger');
             }
             else{
-              window.location.href = response['body'];
+              $('.redirect-btn').attr('href', response['body']);
+              $(".api-response").removeClass('text-danger').removeClass('text-success').addClass('text-success');
+              //window.location.href = response['body'];
             }
           },
           error: function(xhr, textStatus, errorThrown) {
-            console.log(xhr.responseJSON);
+            var formattedJSON = JSON.stringify(xhr.responseJSON, null, 2);
+            $(".api-response").html('<pre>' + formattedJSON + '</pre>');
+            $(".api-response").removeClass('text-danger').removeClass('text-success').addClass('text-danger');
+
             $('.error-box').show();
             $('.error-box .card-header').html(xhr.responseJSON.message);
             $('.error-box .card-body').html(xhr.responseJSON.body);
