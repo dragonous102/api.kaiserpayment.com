@@ -172,7 +172,7 @@ class ApiKeyController extends Controller
           }
           $existingPartner->api_key = ApiKey::getApiKeyFromDomain($domain);
           $success = true;
-          $message = "Because you did not change API key information, will not generate new API key.";
+          $message = "Partner information updated successfully. But because you did not change API key information, will not generate new API key.";
           $body = $existingPartner;
         }
         else {
