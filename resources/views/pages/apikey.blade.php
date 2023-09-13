@@ -16,6 +16,7 @@
         <th>Partner Name</th>
         <th>Partner Domain</th>
         <th>Fee(%)</th>
+        <th>Crypto<br>Fee(%)</th>
         <th style="width: 80px;">API Key</th>
         <th style="width: 100px;">Status</th>
         <th>Update Date</th>
@@ -30,6 +31,9 @@
         </td>
         <td>
           <input type="number" class="form-control" id="new_fee" placeholder="fee %" style="width: 100px;">
+        </td>
+        <td>
+          <input type="number" class="form-control" id="new_crypto_fee" placeholder="crypto fee %" style="width: 100px;">
         </td>
         <td>
           <!-- API Key (Static) -->
@@ -55,12 +59,13 @@
           <td class="name">{{ $partner->name }}</td>
           <td class="domain">{{ $partner->domain }}</td>
           <td class="fee">{{ $partner->fee }}</td>
+          <td class="crypto_fee">{{ $partner->crypto_fee }}</td>
           <td class="api-key">
             <button class="trans-btn" data-bs-toggle="modal" data-bs-target="#apiKeyModal" onclick="getApiKey({{ $partner->id }})">
               @if ($partner->api_key == 'MISSING' )
                 <i class="fas fa-eye-slash"></i>
               @elseif($partner->api_key == 'INVALID' )
-                <i class="fas fa-eye-slash text-danger"></i>
+                <i class="fas fa-eye text-danger"></i>
               @else
                 <i class="fas fa-eye text-success"></i>
               @endif
@@ -92,8 +97,8 @@
         </tr>
       @endforeach
 
-      @include('pages.admin_modal')
-      @include('pages.admin_modal_api')
+      @include('pages.apikey_modal')
+      @include('pages.apikey_modal_api')
 
       </tbody>
       <tfoot>
@@ -111,6 +116,7 @@
         name: $('#new_name').val(),
         domain: $('#new_domain').val(),
         fee: $('#new_fee').val(),
+        crypto_fee: $('#new_crypto_fee').val(),
         status: $('#new_status').val(),
       };
 
@@ -147,6 +153,7 @@
                         <td class="name">'+ body.name +'</td>\
                         <td class="domain">'+ body.domain +'</td>\
                         <td class="fee">'+ body.fee +'</td>\
+                        <td class="crypto_fee">'+ body.crypto_fee +'</td>\
                         <td><button class="trans-btn" onclick="getApiKey('+ body.id +')" data-bs-toggle="modal" data-bs-target="#apiKeyModal">\
                           <i class="fas fa-eye-slash"></i></button></td>\
                         <td class="status">'+ status +'</td>\
@@ -204,6 +211,7 @@
             $('#modal_name').val(data.name);
             $('#modal_domain').val(data.domain);
             $('#modal_fee').val(data.fee);
+            $('#modal_crypto_fee').val(data.crypto_fee);
             $('#modal_status').val(data.status);
             $('#modal_api_key').text(data.api_key);
           }
@@ -277,7 +285,7 @@
             $transBtn = $transBtn.find('i').removeClass('fa-eye-slash').removeClass('fa-eye').removeClass('text-danger').removeClass('text-success');
             if( response['body'].msg === 'INVALID_API_KEY'){
               $transBtn = $('button#modal_update_' + id).closest('tr').find('.trans-btn');
-              $transBtn.find('i').addClass('fa-eye-slash').addClass('text-danger');
+              $transBtn.find('i').addClass('fa-eye').addClass('text-danger');
               $(".modal-api-key").html(response['message'] + "<p class='text-danger'>" + response['body'].api_key) + "</p>";
               if(other === true){
                 $('.add-success').hide();

@@ -42,6 +42,7 @@ class ApiKey
   }
 
   public static function getApiKeyFromDomain($domain){
+    //echo '<br>'.$domain.'<br>';
     $apiKeys = config('api_keys');
 
     foreach ($apiKeys as $key => $value) {

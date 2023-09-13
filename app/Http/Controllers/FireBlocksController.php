@@ -17,6 +17,8 @@ use Mockery\Exception;
 
 class FireBlocksController extends Controller
 {
+  private $KAISER_DOMAIN = 'API.KAISERPAYMENT.COM';
+
   public function showGetAddressPage(Request $request): string
   {
     return view('pages.fireblocks_getAddress');
@@ -51,6 +53,10 @@ class FireBlocksController extends Controller
           $code = 403;
           $message = "Payment Error 3: Invalid authorization API key. It does not match the correct partner's information.";
         }
+        elseif( $dbPartner == null || $dbPartner->status == Constants::$PARTNER_STATUS['disabled'] ){
+          $code = 403;
+          $message = "Payment Error 4: Invalid authorization API key. This request to access the Kaiser API was declined.";
+        }
         else{
           // Check request params
           $assetId = $request->input("currency");
@@ -61,19 +67,19 @@ class FireBlocksController extends Controller
             ($productName == null || strlen(trim($productName)) == 0 ) &&
             ($assetId == null || strlen(trim($assetId)) == 0 )){
             $code = 400;
-            $message = "Payment Error 4: Empty request.";
+            $message = "Payment Error 5: Empty request.";
           }
           else if($amount == null || !is_numeric($amount) || is_numeric($amount) < 0){
             $code = 400;
-            $message = "Payment Error 5: Valid amount is required.";
+            $message = "Payment Error 6: Valid amount is required.";
           }
           else if($productName == null || strlen(trim($productName)) == 0){
             $code = 400;
-            $message = "Payment Error 6: Product name is required.";
+            $message = "Payment Error 7: Product name is required.";
           }
           else if($assetId == null || strlen(trim($assetId)) == 0){
             $code = 400;
-            $message = "Payment Error 7: Currency is required.";
+            $message = "Payment Error 8: Currency is required.";
           }
           else{
             // Save order
@@ -143,12 +149,12 @@ class FireBlocksController extends Controller
                 $fbOrderAddress->prev_amount = 0;
                 $fbOrderAddress->after_amount = 0;
                 $fbOrderAddress->net_amount = 0;
-                $fbOrderAddress->payment_status = Constants::$PAYMENT_STATUS['pending'];
+                $fbOrderAddress->payment_status = Constants::$PAYMENT_STATUS['failed'];
                 $fbOrderAddress->description = Constants::$CREATED_BY['system'];
                 $fbOrderAddress->action_status = Constants::$ACTION_STATUS['failed'];
                 $fbOrderAddress->save();
 
-                $message = "Payment Error 8: Failed to get $assetId deposit address.";
+                $message = "Payment Error 9: Failed to get $assetId deposit address.";
                 $code = 400;
                 $body['order_id'] = $fbOrder->order_id;
                 $body['currency'] = $fbOrder->currency;
@@ -165,12 +171,12 @@ class FireBlocksController extends Controller
               $fbOrderAddress->prev_amount = 0;
               $fbOrderAddress->after_amount = 0;
               $fbOrderAddress->net_amount = 0;
-              $fbOrderAddress->payment_status = Constants::$PAYMENT_STATUS['pending'];
+              $fbOrderAddress->payment_status = Constants::$PAYMENT_STATUS['failed'];
               $fbOrderAddress->description = Constants::$CREATED_BY['system'];
               $fbOrderAddress->action_status = Constants::$ACTION_STATUS['failed'];
               $fbOrderAddress->save();
 
-              $message = "Payment Error 9: Failed to get $assetId deposit address.";
+              $message = "Payment Error 10: Failed to get $assetId deposit address.";
               $code = $e->getCode();
               $body['order_id'] = $fbOrder->order_id;
               $body['currency'] = $fbOrder->currency;
@@ -188,14 +194,150 @@ class FireBlocksController extends Controller
     }
     catch (GuzzleException $e) {
       $code = $e->getCode();
-      $message = "Payment Error 10: ".$e->getMessage();
+      $message = "Payment Error 11: ".$e->getMessage();
     }
     catch (\Exception $e) {
       $code = $e->getCode();
-      $message = "Payment Error 11: ".$e->getMessage();
+      $message = "Payment Error 12: ".$e->getMessage();
     }
     if( $code == 0 )
       $code = 400;
+    return response()->json([
+      'code' => $code,
+      'success' => $success,
+      'message' => $message,
+      'timestamp' => $timestamp,
+      'body' => $body
+    ])->setStatusCode($code);
+  }
+
+  public function getCryptoPaymentReport(Request $request){
+    $code = 200;
+    $success = false;
+    $timestamp = now()->toIso8601String();
+    $body = [];
+
+    try {
+      if ($request->hasHeader('Authorization')) {
+
+        // Check API key
+        try {
+          $apiKey = $request->header('Authorization');
+          $apiKeyPartner = ApiKey::parseJwtToken($apiKey);
+          $dbPartner = Partner::find($apiKeyPartner['id']);
+          $apiKeyStatus = ApiKey::isValidApiKey($dbPartner, $apiKeyPartner);
+        }
+        catch (Exception $e){
+          $code = 403;
+          $message = "Invalid authorization API key.";
+          throw new RuntimeException($message, $code);
+        }
+        if( $apiKeyStatus == 'UN_REGISTERED_API_KEY'){
+          $code = 403;
+          $message = "Report Error 2: Invalid authorization API key. It is not registered authorization API key.";
+        }
+        elseif( $apiKeyStatus == 'NOT_MATCHED_API_KEY'){
+          $code = 403;
+          $message = "Report Error 3: Invalid authorization API key. It does not match the correct partner's information.";
+        }
+        elseif( $dbPartner == null || $dbPartner->status == Constants::$PARTNER_STATUS['disabled'] ){
+          $code = 403;
+          $message = "Report Error 4: Invalid authorization API key. This request to access the Kaiser API was declined.";
+        }
+        else{
+          // Extract search parameters from the request
+          $orderId = $request->input('orderId');
+          $fromDate = $request->input('fromDate');
+          $toDate = $request->input('toDate');
+          $address = $request->input('address');
+          $paymentStatus = $request->input('paymentStatus');
+          $pageSize = $request->input('pageSize', 10); // Default to 10 results per page
+          $pageNo = $request->input('pageNo', 1); // Default to page 1
+
+          // Build the query for searching orders
+          $query = FbDepositOrderAddress::query()
+            ->leftJoin('fb_deposit_order', 'fb_deposit_order.id', '=', 'fb_deposit_order_address.deposit_order_id')
+            ->leftJoin('fb_addresses', 'fb_addresses.id', '=', 'fb_deposit_order_address.address_id') // Use LEFT JOIN
+            ->select(
+              'fb_deposit_order.order_id',
+              'fb_deposit_order.currency as currency',
+              'fb_deposit_order.amount as payment_amount',
+              'fb_addresses.address',
+              'fb_deposit_order_address.net_amount as wallet_balance',
+              'fb_deposit_order_address.payment_status as payment_status',
+              'fb_deposit_order_address.fee_amount as fee',
+              'fb_deposit_order_address.action_status as status',
+              'fb_deposit_order_address.updated_at'
+            )
+            ->orderByDesc('fb_deposit_order_address.updated_at');
+
+          // Apply filters based on search parameters
+          if ($orderId) {
+            $query->where('fb_deposit_order.order_id', 'LIKE', '%' . $orderId . '%');
+          }
+
+          // Kaiser can get all transactions
+          if( $dbPartner->domain != $this->KAISER_DOMAIN ){
+            $query->where('fb_deposit_order.partner_id', $dbPartner->id);
+          }
+
+          if ($fromDate) {
+            $query->whereDate('fb_deposit_order_address.updated_at', '>=', $fromDate.' 00:00:00');
+          }
+
+          if ($toDate) {
+            $query->whereDate('fb_deposit_order_address.updated_at', '<=', $toDate.' 23:59:59');
+          }
+
+          if ($address) {
+            $query->where('fb_addresses.address', 'LIKE', '%' . $address . '%');
+          }
+
+          if ($paymentStatus) {
+            $query->where('fb_deposit_order_address.payment_status', $paymentStatus);
+          }
+
+          // Calculate total result count and page count
+          if( $pageSize == 0 )
+            $pageSize = 10;
+          $totalResults = $query->count();
+          $totalPages = ceil($totalResults / $pageSize);
+          $totalRecords = FbDepositOrderAddress::count();
+
+          // Apply pagination
+          $query->offset(($pageNo - 1) * $pageSize)
+            ->limit($pageSize);
+
+          // Fetch the results
+          $results = $query->get();
+
+          $success = true;
+          $message = "report data";
+          $body['data'] = $results;
+          $body['page_count'] = $totalPages;
+          $body['page_no'] = $pageNo;
+          $body['page_size'] = $pageSize;
+          $body['total_data_size'] = $totalRecords;
+          $body['searched_data_size'] = $totalResults;
+        }
+      }
+      else {
+        $code = 403;
+        $message = "Report Error 1: Authorization is missing.";
+      }
+    }
+    catch (GuzzleException $e) {
+      $code = $e->getCode();
+      $message = "Report Error 5: ".$e->getMessage();
+    }
+    catch (\Exception $e) {
+      $code = $e->getCode();
+      $message = "Report Error 6: ".$e->getMessage();
+    }
+
+    if( $code == 0 )
+      $code = 400;
+
     return response()->json([
       'code' => $code,
       'success' => $success,

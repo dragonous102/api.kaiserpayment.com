@@ -38,7 +38,7 @@
                         <option value="BUSD_BSC">Binance-Peg BUSD (BSC)</option>
                         <option value="USDC">USD Coin</option>
                         <option value="USDC_POLYGON">USDC (Polygon)</option>
-                        <option value="BNB">BNB</option>
+                        <option value="BNB_BSC">BNB Smart Chain</option>
                         <option value="TRX">Tron</option>
                       </select>
                     </div>

@@ -31,6 +31,12 @@
               </div>
             </div>
             <div class="form-group row">
+              <label for="modal_crypto_fee" class="col-sm-2 col-form-label">Crypto Fee</label>
+              <div class="col-sm-10">
+                <input type="text" class="form-control" id="modal_crypto_fee">
+              </div>
+            </div>
+            <div class="form-group row">
               <label for="modal_status" class="col-sm-2 col-form-label">Status</label>
               <div class="col-sm-10">
                 <select class="form-control" id="modal_status">
@@ -80,6 +86,7 @@
       id: $('#modal_id').val(),
       name: $('#modal_name').val(),
       domain: $('#modal_domain').val(),
+      crypto_fee: $('#modal_crypto_fee').val(),
       fee: $('#modal_fee').val(),
       status: $('#modal_status').val(),
     };
@@ -113,9 +120,11 @@
               $(this).html(data.domain);
             if( $(this).hasClass('fee'))
               $(this).html(data.fee);
+            if( $(this).hasClass('crypto_fee'))
+              $(this).html(data.crypto_fee);
             if( $(this).hasClass('api-key')){
               $(this).html('<button class="trans-btn" data-bs-toggle="modal" data-bs-target="#apiKeyModal" onclick="getApiKey('+ data.id +')">\
-                                <i class="fas fa-eye-slash text-danger"></i>\
+                                <i class="fas fa-eye text-danger"></i>\
                             </button>');
             }
             if( $(this).hasClass('status')){

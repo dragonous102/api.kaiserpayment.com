@@ -10,6 +10,7 @@ class Constants
     'pending'=>'pending',
     'complete'=>'complete',
     'over'=>'over',
+    'failed'=>'failed',
   ];
 
   public static $ACTION_STATUS = [
@@ -21,5 +22,10 @@ class Constants
     'system'=>'system',
     'user'=>'user',
     'admin'=>'admin',
+  ];
+
+  public static $PARTNER_STATUS = [
+    'enabled'=>1,
+    'disabled'=>0,
   ];
 }

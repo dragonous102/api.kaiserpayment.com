@@ -19,8 +19,9 @@ class ApiKeyController extends Controller
 
         if ($api_key === null || strlen(trim($api_key)) == 0) {
           $partner->api_key = 'MISSING';
-        } else {
-          //echo $api_key;
+        }
+        else {
+          //echo $api_key.'<br>';
           $savedData = ApiKey::parseJwtToken($api_key);
           if( isset($savedData['error'])) {
             $partner->api_key = 'INVALID';
@@ -42,7 +43,7 @@ class ApiKeyController extends Controller
       $partners = [];
     }
 
-    return view('pages.admin', compact('partners'));
+    return view('pages.apikey', compact('partners'));
   }
 
   public function addNewPartner(Request $request)
@@ -56,6 +57,7 @@ class ApiKeyController extends Controller
       $name = strtoupper($request->input("name"));
       $domain = strtoupper($request->input("domain"));
       $fee = $request->input("fee");
+      $crypto_fee = $request->input("crypto_fee");
       $status = $request->input("status");
 
       // Check if a partner with the same name or domain already exists
@@ -64,7 +66,7 @@ class ApiKeyController extends Controller
       if ($existingPartner) {
         $code = 400;
         $message = "A partner with the same name or domain already exists.";
-      } elseif (empty($name) || empty($domain) || empty($fee) || !is_numeric($fee) || $fee < 0 || empty($status)) {
+      } elseif (empty($name) || empty($domain) || empty($fee) || empty($crypto_fee) || !is_numeric($fee) || $fee < 0 || empty($status)) {
         $code = 400;
         $message = "Invalid input data. Please provide valid values for all fields.";
       } else {
@@ -73,6 +75,7 @@ class ApiKeyController extends Controller
           'name' => $name,
           'domain' => $domain,
           'fee' => $fee,
+          'crypto_fee' => $crypto_fee,
           'status' => $status,
         ]);
 
@@ -146,10 +149,11 @@ class ApiKeyController extends Controller
       $name = strtoupper($request->input("name"));
       $domain = strtoupper($request->input("domain"));
       $fee = $request->input("fee");
+      $crypto_fee = $request->input("crypto_fee");
       $status = $request->input("status");
       $existingPartner = Partner::where('id', $id)->first();
 
-      if (empty($name) || empty($domain) || empty($fee) || !is_numeric($fee) || $fee < 0 || !is_numeric($status)) {
+      if (empty($name) || empty($domain) || empty($fee) || empty($crypto_fee) || !is_numeric($fee) || $fee < 0 || !is_numeric($status)) {
         $code = 400;
         $message = "Invalid input data. Please provide valid values for all fields.";
       } else if ($existingPartner == null){
@@ -161,19 +165,21 @@ class ApiKeyController extends Controller
           $existingPartner->domain == $domain &&
           $existingPartner->fee == $fee &&
           $existingPartner->id == $id ){
-          if($existingPartner->status != $status){
+          if($existingPartner->status != $status || $existingPartner->crypto_fee != $crypto_fee){
             $existingPartner->status = $status;
+            $existingPartner->crypto_fee = $crypto_fee;
             $existingPartner->save();
           }
           $existingPartner->api_key = ApiKey::getApiKeyFromDomain($domain);
           $success = true;
-          $message = "You did not change partner's information.";
+          $message = "Because you did not change API key information, will not generate new API key.";
           $body = $existingPartner;
         }
         else {
           $existingPartner->name = $name;
           $existingPartner->domain = $domain;
           $existingPartner->fee = $fee;
+          $existingPartner->crypto_fee = $crypto_fee;
           $existingPartner->status = $status;
 
           $existingPartner->save();

@@ -25,3 +25,9 @@ button.close {
   border: 0;
   color: lightgray;
 }
+.copy-address-icon {
+  cursor: pointer;
+}
+.float-right{
+  float: right;
+}

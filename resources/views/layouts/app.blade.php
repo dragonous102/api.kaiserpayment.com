@@ -2,11 +2,20 @@
 <html lang="en">
 <head>
   <title>{{ config('app.name', 'Kaiser') }}</title>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+
   <!-- Add Bootstrap CSS link -->
-  <link rel="stylesheet" href="{{ asset('css/http_cdn.jsdelivr.net_npm_bootstrap@5.3.0_dist_css_bootstrap.css', config('env') == 'local') }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <link rel="stylesheet" href="{{ asset('css/my.css', config('env') == 'local') }}">
-  <meta name="csrf-token" content="{{ csrf_token() }}">
+
+  <!-- Add Bootstrap JS and Popper.js (required for some Bootstrap components) -->
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Popper -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 </head>
 <body>
 <header class="text-center py-4">
@@ -48,7 +57,7 @@
 </nav>
 
 <main>
-  <div class="container mt-4">
+  <div class="container mt-3">
     @yield('content')
   </div>
 </main>
@@ -57,14 +66,6 @@
   <!-- Your footer content here -->
 </footer>
 
-<!-- Add Bootstrap JS and Popper.js (required for some Bootstrap components) -->
-<!-- jQuery -->
-{{--<script src="{{ asset('js/http_code.jquery.com_jquery-3.6.0.js', config('env') == 'local') }}"></script>--}}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Popper -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js"></script>
-<!-- Bootstrap JS -->
-{{--<script src="{{ asset('js/http_cdn.jsdelivr.net_npm_bootstrap@5.3.0_dist_js_bootstrap.js', config('env') == 'local') }}"></script>--}}
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
 </body>
 </html>
