@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+  <style>
+    td{
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+  </style>
   <div class="container">
     <h5 class="text-secondary mb-3">https://api.kaiserpayment.com/api/getCryptoPaymentReport</h5>
     <div class="row justify-content-center">
@@ -172,7 +178,7 @@
             render: function (data, type, row, meta){
               if (type === 'display') {
                 if (data !== null) {
-                  const shortAddress = data.substring(0, 6) + '...';
+                  const shortAddress = data.substring(0, 8) + '...';
                   const copyIcon = `<i class="far fa-copy copy-address" title="copy address" data-clipboard-text="${data}" id="copy-icon-${meta.row}"></i>`;
                   return `${shortAddress} <div class="float-right copy-address-icon">${copyIcon}</div>`;
                 }
@@ -207,7 +213,7 @@
                     break;
                 }
 
-                return `<span class="badge ${badgeClass}">${text}</span>`;
+                return `<span class="badge ${badgeClass}" style="margin-left: 10px;">${text}</span>`;
               }
               return data;
             },
