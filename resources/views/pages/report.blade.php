@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+  <style>
+    td{
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+  </style>
   <div class="container">
     <h5 class="text-secondary mb-3">https://api.kaiserpayment.com/api/getReport</h5>
     <div class="row">
