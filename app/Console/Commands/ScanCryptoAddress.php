@@ -70,7 +70,7 @@ class ScanCryptoAddress extends Command
           }
 
           if( $order->fee_amount == null || $order->fee_amount == 0 )
-            $order->fee_amount = $order->after_amount * $order->depositOrder->partner->crypto_fee / 100;
+            $order->fee_amount = $order->depositOrder->amount * $order->depositOrder->partner->crypto_fee / 100;
 
           $order->save();
         }
