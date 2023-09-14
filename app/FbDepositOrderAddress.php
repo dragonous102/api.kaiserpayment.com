@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FbDepositOrderAddress extends Model
@@ -27,12 +28,12 @@ class FbDepositOrderAddress extends Model
    * Define any additional model methods or relationships here.
    */
 
-  public function depositOrder()
+  public function depositOrder(): BelongsTo
   {
     return $this->belongsTo(FbDepositOrder::class, 'deposit_order_id');
   }
 
-  public function address()
+  public function address(): BelongsTo
   {
     return $this->belongsTo(FbAddress::class, 'address_id');
   }

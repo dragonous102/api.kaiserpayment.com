@@ -13,19 +13,20 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+      Commands\ScanCryptoAddress::class,
     ];
 
     /**
      * Define the application's command schedule.
      *
-     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
+     * @param Schedule $schedule
      * @return void
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
+      $schedule->command('kaiser:scan-crypto-address')
+        ->everyFiveMinutes()
+        ->withoutOverlapping();
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FbDepositOrder extends Model
@@ -18,7 +19,7 @@ class FbDepositOrder extends Model
     'currency',
   ];
 
-  public function partner()
+  public function partner(): BelongsTo
   {
     return $this->belongsTo(Partner::class, 'partner_id');
   }

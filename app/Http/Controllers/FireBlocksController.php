@@ -211,6 +211,11 @@ class FireBlocksController extends Controller
     ])->setStatusCode($code);
   }
 
+  public function showReportPage(Request $request): string
+  {
+    return view('pages.fireblocks_getReport');
+  }
+
   public function getCryptoPaymentReport(Request $request){
     $code = 200;
     $success = false;
@@ -347,16 +352,11 @@ class FireBlocksController extends Controller
     ])->setStatusCode($code);
   }
 
-  public function showReportPage(Request $request): string
-  {
-    return view('pages.fireblocks_getReport');
-  }
-
   public function showTestPage(Request $request){
     return view('pages.fireblocks');
   }
 
-  private function getFireBlocks(): FireblocksSDK
+  public static function getFireBlocks(): FireblocksSDK
   {
     $relativePath = config('fireblocks.private_key_file');
     $absolutePath = base_path($relativePath);
@@ -366,7 +366,6 @@ class FireBlocksController extends Controller
   }
 
   /**
-   * @throws FireblocksApiException
    */
   public function getAccount(Request $request){
     $code = 200;
@@ -376,57 +375,8 @@ class FireBlocksController extends Controller
 
     try {
       $fireBlocks = $this->getFireBlocks();
-      //$result = $fireBlocks->get_gas_station_info();
-
-      // Create new vault account with name
-      //$result = $fireBlocks->create_vault_account("kaiser_USDT1");//34250
       $result = $fireBlocks->get_vault_accounts("kaiser");
-      //$result = $fireBlocks->get_supported_assets();
 
-      // Update vault account's name
-      //$result = $fireBlocks->update_vault_account("34250", "kaiser_BTC1");
-
-      // Create BTC wallet with asset
-      //$result = $fireBlocks->create_vault_asset("34198", "BTC");
-      //$result = $fireBlocks->create_vault_asset("34199", "USDT");
-      //$result = $fireBlocks->create_vault_asset("34199", "BTC_TEST");// not work
-      //$result = $fireBlocks->get_users();// not work
-      //$result = $fireBlocks->activate_vault_asset("31499", "USDT");
-      //$result = $fireBlocks->create_vault_asset("34199", "USDT");
-      //$result = $fireBlocks->create_vault_asset("34198", "BUSD");
-      //$fireBlocks->create_vault_asset("34254", "USDT");
-      //$result = $fireBlocks->get_deposit_addresses("34254", "USDT");
-      //$result = $fireBlocks->get_network_connections();
-
-
-      //$result = $fireBlocks->get_vault_assets_balance("kaiser_BTC");
-
-
-      /*$dest = [
-        'address' => '0x72e0595064DaF9D3B07CF6Eb6D1B7D3E9bd31CBE'
-      ];
-
-      // Encode the destination array as a JSON string
-      $destJson = json_encode($dest);
-      $result = $fireBlocks->create_transaction(
-        "BNB_BSC",
-        0.001,
-        new TransferPeerPath(PeerEnums::VAULT_ACCOUNT(), "34198"),
-        new DestinationTransferPeerPath(PeerEnums::ONE_TIME_ADDRESS(), null, $dest, 0.0005, null, null, null, null, 0.0005)
-      );*/
-
-      //$result = $fireBlocks->get_transactions(0, 0, null, 10, 'lastUpdated');
-      //$result = $fireBlocks->set_confirmation_threshold_for_txid("9e8ef1ca-7bea-4857-a9fc-90c6d3b378ce", 1);
-
-
-      //$result = $fireBlocks->get_vault_balance_by_asset("BTC");
-      //$result = $fireBlocks->get_contract_wallets();// not work
-
-
-      //$result = $fireBlocks->get_vault_accounts();
-
-      // Get BTC wallets
-      //$result = $fireBlocks->get_vault_account_asset("34198", "BTC");
       if( $result != null ){
         $success = true;
         $message = "All of the vault accounts.";
