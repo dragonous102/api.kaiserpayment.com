@@ -13,6 +13,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use http\Exception\RuntimeException;
 use Illuminate\Http\Request;
 use FireblocksSdkPhp\FireblocksSDK;
+use Illuminate\Support\Facades\DB;
 use Mockery\Exception;
 
 class FireBlocksController extends Controller
@@ -268,11 +269,11 @@ class FireBlocksController extends Controller
               'fb_deposit_order.order_id',
               'partners.name as partner_name',
               'fb_deposit_order.currency as currency',
-              'fb_deposit_order.amount as payment_amount',
+              DB::raw('CAST(fb_deposit_order.amount AS CHAR) as payment_amount'),
               'fb_addresses.address',
-              'fb_deposit_order_address.net_amount as wallet_balance',
+              DB::raw('CAST(fb_deposit_order_address.net_amount AS CHAR) as wallet_balance'),
               'fb_deposit_order_address.payment_status as payment_status',
-              'fb_deposit_order_address.fee_amount as fee',
+              DB::raw('CAST(fb_deposit_order_address.fee_amount AS CHAR) as fee'),
               'fb_deposit_order_address.action_status as status',
               'fb_deposit_order_address.updated_at'
             )
@@ -330,7 +331,7 @@ class FireBlocksController extends Controller
           $message = "report data";
           $body['data'] = $results;
           $body['page_count'] = $totalPages;
-          $body['page_no'] = $pageNo;
+          $body['page_no'] = $pageNo == null ? 1 : $pageNo;
           $body['page_size'] = $pageSize;
           $body['total_data_size'] = $totalRecords;
           $body['searched_data_size'] = $totalResults;
@@ -349,7 +350,6 @@ class FireBlocksController extends Controller
       $code = 500;
       $message = "Report Error 6: ".$e->getMessage();
     }
-
     return response()->json([
       'code' => $code,
       'success' => $success,
