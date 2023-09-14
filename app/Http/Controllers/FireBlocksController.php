@@ -8,6 +8,7 @@ use App\FbDepositOrderAddress;
 use App\Library\ApiKey;
 use App\Library\Constants;
 use App\Partner;
+use Carbon\Carbon;
 use FireblocksSdkPhp\Exceptions\FireblocksApiException;
 use GuzzleHttp\Exception\GuzzleException;
 use http\Exception\RuntimeException;
@@ -84,9 +85,10 @@ class FireBlocksController extends Controller
           }
           else{
             // Save order
-            $randomString = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 8);
-            $timestamp = time();
-            $orderNo = $randomString . sprintf("%012d", $timestamp);
+            $randomString = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 7);
+            $now = Carbon::now();
+            $timestamp = $now->getPreciseTimestamp(3);
+            $orderNo = $randomString . sprintf("%013d", $timestamp);
 
             $fbOrder = new FbDepositOrder();
             $fbOrder->partner_id = $dbPartner->id;
