@@ -455,19 +455,23 @@ class FireBlocksController extends Controller
       // use fireBlocks SDK
       $fireBlocks = $this->getFireBlocks();
 
-      // make new vault account name
-      $accountName = $request->input("accountName");
+      // get account id
+      $address = $request->input("address");
+      $vaultAccountName = FbAddress::where('address', $address)->value('vault_account_name');
 
-      // create new vault account
-      $response = $fireBlocks->get_vault_assets_balance($accountName);
+      // get account balance
+      if($vaultAccountName)
+        $response = $fireBlocks->get_vault_assets_balance($vaultAccountName);
+      else
+        $response = null;
 
       if( $response != null ){
         $success = true;
-        $message = "The balance of $accountName.";
+        $message = "The balance of $vaultAccountName.";
         $body = $response;
       }
       else{
-        $message = "Failed to get balance of $accountName.";
+        $message = "Failed to get balance of $vaultAccountName.";
         $code = 400;
       }
     } catch (\Exception $e) {
