@@ -172,7 +172,7 @@
             render: function (data, type, row, meta){
               if (type === 'display') {
                 if (data !== null) {
-                  const shortAddress = data.substring(0, 8) + '...';
+                  const shortAddress = data.substring(0, 6) + '...';
                   const copyIcon = `<i class="far fa-copy copy-address" title="copy address" data-clipboard-text="${data}" id="copy-icon-${meta.row}"></i>`;
                   return `${shortAddress} <div class="float-right copy-address-icon">${copyIcon}</div>`;
                 }
