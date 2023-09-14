@@ -196,11 +196,11 @@ class FireBlocksController extends Controller
       }
     }
     catch (GuzzleException $e) {
-      $code = $e->getCode();
+      $code = 500;
       $message = "Payment Error 11: ".$e->getMessage();
     }
     catch (\Exception $e) {
-      $code = $e->getCode();
+      $code = 500;
       $message = "Payment Error 12: ".$e->getMessage();
     }
     if( $code == 0 )

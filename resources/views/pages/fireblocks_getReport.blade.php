@@ -140,7 +140,12 @@
           },
         },
         columns: [
-          { data: null, render: function (data, type, row, meta) { return meta.row + 1; } },
+          {
+            data: null,
+            render: function (data, type, row, meta) {
+              return meta.row + 1 + (meta.settings._iDisplayStart || 0);
+            }
+          },
           { data: 'partner_name' },
           { data: 'order_id' },
           { data: 'currency' },
@@ -148,7 +153,7 @@
             data: 'payment_amount',
             render: function (data, type, row, meta) {
               if (type === 'display') {
-                return data === 0 ? '' : data;
+                return data === "0" ? '' : data;
               }
               return data;
             },
@@ -157,7 +162,7 @@
             data: 'wallet_balance',
             render: function (data, type, row, meta) {
               if (type === 'display') {
-                return data === 0 ? '' : data;
+                return data === "0" ? '' : data;
               }
               return data;
             },
@@ -211,7 +216,7 @@
             data: 'fee',
             render: function (data, type, row, meta) {
               if (type === 'display') {
-                return data === 0 ? '' : data;
+                return data === "0" ? '' : data;
               }
               return data;
             },
