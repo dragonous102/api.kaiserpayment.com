@@ -60,6 +60,7 @@
                   <thead>
                   <tr>
                     <th>No</th>
+                    <th>Name</th>
                     <th>Order ID</th>
                     <th>Currency</th>
                     <th>Payment<br>Amount</th>
@@ -140,6 +141,7 @@
         },
         columns: [
           { data: null, render: function (data, type, row, meta) { return meta.row + 1; } },
+          { data: 'partner_name' },
           { data: 'order_id' },
           { data: 'currency' },
           {

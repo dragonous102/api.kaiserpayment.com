@@ -262,9 +262,11 @@ class FireBlocksController extends Controller
           // Build the query for searching orders
           $query = FbDepositOrderAddress::query()
             ->leftJoin('fb_deposit_order', 'fb_deposit_order.id', '=', 'fb_deposit_order_address.deposit_order_id')
-            ->leftJoin('fb_addresses', 'fb_addresses.id', '=', 'fb_deposit_order_address.address_id') // Use LEFT JOIN
+            ->leftJoin('fb_addresses', 'fb_addresses.id', '=', 'fb_deposit_order_address.address_id')
+            ->leftJoin('partners', 'fb_deposit_order.partner_id', '=', 'partners.id')
             ->select(
               'fb_deposit_order.order_id',
+              'partners.name as partner_name',
               'fb_deposit_order.currency as currency',
               'fb_deposit_order.amount as payment_amount',
               'fb_addresses.address',
@@ -307,7 +309,15 @@ class FireBlocksController extends Controller
             $pageSize = 10;
           $totalResults = $query->count();
           $totalPages = ceil($totalResults / $pageSize);
-          $totalRecords = FbDepositOrderAddress::count();
+          if( $dbPartner->domain == $this->KAISER_DOMAIN ){
+            $totalRecords = FbDepositOrderAddress::count();
+          }
+          else{
+            $partnerId = $dbPartner->id;
+            $totalRecords = FbDepositOrderAddress::whereHas('depositOrder.partner', function ($query) use ($partnerId) {
+              $query->where('id', $partnerId);
+            })->count();
+          }
 
           // Apply pagination
           $query->offset(($pageNo - 1) * $pageSize)
@@ -332,16 +342,13 @@ class FireBlocksController extends Controller
       }
     }
     catch (GuzzleException $e) {
-      $code = $e->getCode();
+      $code = 500;
       $message = "Report Error 5: ".$e->getMessage();
     }
     catch (\Exception $e) {
-      $code = $e->getCode();
+      $code = 500;
       $message = "Report Error 6: ".$e->getMessage();
     }
-
-    if( $code == 0 )
-      $code = 400;
 
     return response()->json([
       'code' => $code,
