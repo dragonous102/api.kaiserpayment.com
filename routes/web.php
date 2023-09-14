@@ -30,6 +30,7 @@ Route::post('/apikey-apply-apikey', 'ApiKeyController@applyApiKey')->name('apike
 
 Route::get('/fireblocks-showGetAddressPage', 'FireBlocksController@showGetAddressPage')->name('page.fireblocks.showGetAddressPage');
 Route::get('/fireblocks-showReportPage', 'FireBlocksController@showReportPage')->name('page.fireblocks.showReportPage');
+Route::get('/fireblocks-showCronJobPage', 'FireBlocksController@showCronJobPage')->name('page.fireblocks.showCronJobPage');
 Route::get('/fireblocks-test', 'FireBlocksController@showTestPage')->name('page.fireblocks.test');
 Route::post('/fireblocks-get-account', 'FireBlocksController@getAccount')->name('fireblocks.getAccount');
 Route::post('/fireblocks-get-account-balance', 'FireBlocksController@getAccountBalance');

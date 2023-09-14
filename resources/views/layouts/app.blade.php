@@ -48,6 +48,8 @@
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="{{ route('page.fireblocks.showReportPage') }}">Get Crypto Payment Report API</a></li>
             <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{{ route('page.fireblocks.showCronJobPage') }}">Check Address Monitoring App</a></li>
+            <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="{{ route('page.fireblocks.test') }}">Fireblocks Test Page</a></li>
           </ul>
         </li>

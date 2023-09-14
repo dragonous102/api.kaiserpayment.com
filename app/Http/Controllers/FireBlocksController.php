@@ -3,18 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\FbAddress;
+use App\FbCronJobMonitor;
 use App\FbDepositOrder;
 use App\FbDepositOrderAddress;
 use App\Library\ApiKey;
 use App\Library\Constants;
 use App\Partner;
 use Carbon\Carbon;
-use FireblocksSdkPhp\Exceptions\FireblocksApiException;
 use GuzzleHttp\Exception\GuzzleException;
 use http\Exception\RuntimeException;
 use Illuminate\Http\Request;
 use FireblocksSdkPhp\FireblocksSDK;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\View;
 use Mockery\Exception;
 
 class FireBlocksController extends Controller
@@ -359,6 +360,39 @@ class FireBlocksController extends Controller
       'timestamp' => $timestamp,
       'body' => $body
     ])->setStatusCode($code);
+  }
+
+  public function showCronJobPage(Request $request): string
+  {
+    $cronJobMonitor = FbCronJobMonitor::first();
+    $lastExecutedTime = 'Never';
+    $executionDuration = 0;
+    $cronJobStatus = 'stopped';
+
+    if ($cronJobMonitor) {
+      // last executed time
+      $lastExecutedTime = $cronJobMonitor->updated_at;
+      $lastExecutedTimeCarbon = Carbon::parse($cronJobMonitor->updated_at);
+      $timeDifferenceMinutes = $lastExecutedTimeCarbon->diffInMinutes(Carbon::now());
+      $lastExecutedTime .= '( '.$timeDifferenceMinutes.' minutes ago)';
+
+      // execute duration
+      $executionDuration = $cronJobMonitor->duration;
+
+      // running status
+      $currentTime = Carbon::now();
+      $timeDifferenceMinutes = $currentTime->diffInMinutes($cronJobMonitor->updated_at);
+      if ($timeDifferenceMinutes < 5) {
+        $cronJobStatus = 'running';
+      }
+    }
+
+    // Pass the data to the view
+    return View::make('pages.fireblocks_cronJob', [
+      'lastExecutedTime' => $lastExecutedTime,
+      'executionDuration' => $executionDuration,
+      'cronJobStatus' => $cronJobStatus,
+    ]);
   }
 
   public function showTestPage(Request $request){

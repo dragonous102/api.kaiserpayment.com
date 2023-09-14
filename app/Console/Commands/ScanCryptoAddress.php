@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\FbCronJobMonitor;
 use App\FbDepositOrderAddress;
 use App\Http\Controllers\FireBlocksController;
 use App\Library\Constants;
@@ -85,6 +86,17 @@ class ScanCryptoAddress extends Command
 
     $this->info("Scanned all address successfully in $duration s.");
     Log::info("Scanned all address successfully in $duration s.");
+
+    $cronJobMonitor = FbCronJobMonitor::first();
+    if( $cronJobMonitor ){
+      $cronJobMonitor->duration = $duration;
+    }
+    else{
+      $cronJobMonitor = new FbCronJobMonitor();
+      $cronJobMonitor->duration = $duration;
+    }
+    $cronJobMonitor->save();
+
     return 0;
   }
 }
