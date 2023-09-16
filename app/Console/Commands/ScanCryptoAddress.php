@@ -81,21 +81,26 @@ class ScanCryptoAddress extends Command
       }
     }
 
-    $endTime = now();
-    $duration = $endTime->diffInSeconds($startTime);
+    try {
+      $endTime = now();
+      $duration = $endTime->diffInSeconds($startTime);
 
-    $this->info("Scanned all address successfully in $duration s.");
-    Log::info("Scanned all address successfully in $duration s.");
+      $this->info("Scanned all address successfully in $duration s.");
+      Log::info("Scanned all address successfully in $duration s.");
 
-    $cronJobMonitor = FbCronJobMonitor::first();
-    if( $cronJobMonitor ){
-      $cronJobMonitor->duration = $duration;
+      $cronJobMonitor = FbCronJobMonitor::first();
+      if ($cronJobMonitor) {
+        $cronJobMonitor->duration = $duration;
+      } else {
+        $cronJobMonitor = new FbCronJobMonitor();
+        $cronJobMonitor->duration = $duration;
+      }
+      $cronJobMonitor->save();
     }
-    else{
-      $cronJobMonitor = new FbCronJobMonitor();
-      $cronJobMonitor->duration = $duration;
+    catch(Exception $e){
+      $errorMsg = $e->getMessage();
+      Log::info("Failed to store monitor log into database reason: $errorMsg");
     }
-    $cronJobMonitor->save();
 
     return 0;
   }
