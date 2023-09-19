@@ -65,10 +65,14 @@ class FireBlocksController extends Controller
           $assetId = $request->input("currency");
           $productName = $request->input("productName");
           $amount = $request->input("amount");
+          $email = $request->input("email");
+          $name = $request->input("name");
 
           if(($amount == null || !is_numeric($amount)) &&
             ($productName == null || strlen(trim($productName)) == 0 ) &&
-            ($assetId == null || strlen(trim($assetId)) == 0 )){
+            ($assetId == null || strlen(trim($assetId)) == 0 ) &&
+            ($email == null || strlen(trim($email)) == 0 ) &&
+            ($name == null || strlen(trim($name)) == 0 )){
             $code = 400;
             $message = "Payment Error 5: Empty request.";
           }
@@ -84,6 +88,14 @@ class FireBlocksController extends Controller
             $code = 400;
             $message = "Payment Error 8: Currency is required.";
           }
+          else if($email == null || strlen(trim($email)) == 0){
+            $code = 400;
+            $message = "Payment Error 9: Email is required.";
+          }
+          else if($name == null || strlen(trim($name)) == 0){
+            $code = 400;
+            $message = "Payment Error 10: Name is required.";
+          }
           else{
             // Save order
             $randomString = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 7);
@@ -97,6 +109,8 @@ class FireBlocksController extends Controller
             $fbOrder->amount = $amount;
             $fbOrder->product_name = $productName;
             $fbOrder->currency = $assetId;
+            $fbOrder->email = $email;
+            $fbOrder->name = $name;
             $fbOrder->save();
 
             // Use fireBlocks SDK
@@ -143,6 +157,8 @@ class FireBlocksController extends Controller
                 $body['order_id'] = $fbOrder->order_id;
                 $body['currency'] = $fbOrder->currency;
                 $body['address'] = $fbAddress->address;
+                $body['email'] = $fbOrder->email;
+                $body['name'] = $fbOrder->name;
                 $body['status'] = $fbOrderAddress->action_status;
               }
               else{
@@ -158,11 +174,13 @@ class FireBlocksController extends Controller
                 $fbOrderAddress->action_status = Constants::$ACTION_STATUS['failed'];
                 $fbOrderAddress->save();
 
-                $message = "Payment Error 9: Failed to get $assetId deposit address.";
+                $message = "Payment Error 11: Failed to get $assetId deposit address.";
                 $code = 400;
                 $body['order_id'] = $fbOrder->order_id;
                 $body['currency'] = $fbOrder->currency;
                 $body['address'] = null;
+                $body['email'] = $fbOrder->email;
+                $body['name'] = $fbOrder->name;
                 $body['status'] = $fbOrderAddress->action_status;
                 $body['reason'] = "Failed to get $assetId deposit address.";
               }
@@ -180,12 +198,14 @@ class FireBlocksController extends Controller
               $fbOrderAddress->action_status = Constants::$ACTION_STATUS['failed'];
               $fbOrderAddress->save();
 
-              $message = "Payment Error 10: Failed to get $assetId deposit address.";
+              $message = "Payment Error 12: Failed to get $assetId deposit address.";
               $code = $e->getCode();
               $body['order_id'] = $fbOrder->order_id;
               $body['currency'] = $fbOrder->currency;
               $body['address'] = null;
               $body['status'] = $fbOrderAddress->action_status;
+              $body['email'] = $fbOrder->email;
+              $body['name'] = $fbOrder->name;
               $body['reason'] = $e->getMessage();
             }
           }
@@ -198,11 +218,11 @@ class FireBlocksController extends Controller
     }
     catch (GuzzleException $e) {
       $code = 500;
-      $message = "Payment Error 11: ".$e->getMessage();
+      $message = "Payment Error 13: ".$e->getMessage();
     }
     catch (\Exception $e) {
       $code = 500;
-      $message = "Payment Error 12: ".$e->getMessage();
+      $message = "Payment Error 14: ".$e->getMessage();
     }
     if( $code == 0 )
       $code = 400;
@@ -256,6 +276,7 @@ class FireBlocksController extends Controller
         else{
           // Extract search parameters from the request
           $orderId = $request->input('orderId');
+          $partnerName = $request->input('partner');
           $fromDate = $request->input('fromDate');
           $toDate = $request->input('toDate');
           $address = $request->input('address');
@@ -272,6 +293,8 @@ class FireBlocksController extends Controller
               'fb_deposit_order.order_id',
               'partners.name as partner_name',
               'fb_deposit_order.currency as currency',
+              'fb_deposit_order.name',
+              'fb_deposit_order.email',
               DB::raw('CAST(fb_deposit_order.amount AS CHAR) as payment_amount'),
               'fb_addresses.address',
               DB::raw('CAST(fb_deposit_order_address.net_amount AS CHAR) as wallet_balance'),
@@ -290,6 +313,10 @@ class FireBlocksController extends Controller
           // Kaiser can get all transactions
           if( $dbPartner->domain != $this->KAISER_DOMAIN ){
             $query->where('fb_deposit_order.partner_id', $dbPartner->id);
+          }
+
+          if ($partnerName) {
+            $query->where('partners.name', 'LIKE', '%' . $partnerName . '%');
           }
 
           if ($fromDate) {
@@ -489,38 +516,38 @@ class FireBlocksController extends Controller
   }
 
   public function getSupportedAssets(Request $request){
-  $code = 200;
-  $success = false;
-  $timestamp = now()->toIso8601String();
-  $body = [];
+    $code = 200;
+    $success = false;
+    $timestamp = now()->toIso8601String();
+    $body = [];
 
-  try {
-    // use fireBlocks SDK
-    $fireBlocks = $this->getFireBlocks();
+    try {
+      // use fireBlocks SDK
+      $fireBlocks = $this->getFireBlocks();
 
-    // create new vault account
-    $response = $fireBlocks->get_supported_assets();
+      // create new vault account
+      $response = $fireBlocks->get_supported_assets();
 
-    if( $response != null ){
-      $success = true;
-      $message = "List of supported assets";
-      $body = $response;
+      if( $response != null ){
+        $success = true;
+        $message = "List of supported assets";
+        $body = $response;
+      }
+      else{
+        $message = "Failed to get supported assets";
+        $code = 400;
+      }
+    } catch (\Exception $e) {
+      $code = 500;
+      $message = $e->getMessage();
     }
-    else{
-      $message = "Failed to get supported assets";
-      $code = 400;
-    }
-  } catch (\Exception $e) {
-    $code = 500;
-    $message = $e->getMessage();
+
+    return response()->json([
+      'code' => $code,
+      'success' => $success,
+      'message' => $message,
+      'timestamp' => $timestamp,
+      'body' => $body,
+    ])->setStatusCode($code);
   }
-
-  return response()->json([
-    'code' => $code,
-    'success' => $success,
-    'message' => $message,
-    'timestamp' => $timestamp,
-    'body' => $body,
-  ])->setStatusCode($code);
-}
 }

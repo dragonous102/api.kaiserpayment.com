@@ -1,12 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-  <style>
-    td{
-      padding-left: 0 !important;
-      padding-right: 0 !important;
-    }
-  </style>
   <div class="container">
     <h5 class="text-secondary mb-3">https://api.kaiserpayment.com/api/getCryptoPaymentReport</h5>
     <div class="row justify-content-center">
@@ -17,6 +11,12 @@
             <div class="row">
               <div class="col-md-9">
                 <div class="row">
+                  <div class="col-md-2">
+                    <div class="form-group">
+                      <label for="partner">Partner</label>
+                      <input type="text" class="form-control" id="partner" name="partner" placeholder="Partner Name">
+                    </div>
+                  </div>
                   <div class="col-md-2">
                     <div class="form-group">
                       <label for="order_id">Order Id</label>
@@ -46,7 +46,7 @@
                       </select>
                     </div>
                   </div>
-                  <div class="col-md-4">
+                  <div class="col-md-2">
                     <div class="form-group">
                       <label for="address">Address</label>
                       <input type="text" class="form-control" id="address" name="address" placeholder="Address">
@@ -62,20 +62,22 @@
             <hr class="mt-0">
             <div class="row">
               <div class="col-md-12">
-                <table class="table" id="reportTable">
+                <table class="table stripe hover" id="reportTable">
                   <thead>
                   <tr>
                     <th>No</th>
-                    <th>Name</th>
+                    <th>Partner</th>
                     <th>Order ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
                     <th>Currency</th>
                     <th>Payment<br>Amount</th>
                     <th>Wallet<br>Balance</th>
-                    <th>Address</th>
-                    <th>Payment<br>Status</th>
+                    <th style="width: 120px;">Address</th>
                     <th>Fee</th>
-                    <th>Status</th>
-                    <th>Date</th>
+                    <th style="width: 120px;">Status</th>
+                    <th>Payment<br>Status</th>
+                    <th style="width: 150px;">Date</th>
                   </tr>
                   </thead>
                   <tbody>
@@ -100,6 +102,9 @@
   <!-- Include DataTables CSS -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
 
+  <!-- Include DataTables FixedColumns CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
+
   <!-- Include DataTables JavaScript -->
   <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
@@ -110,6 +115,9 @@
   <!-- Include Date and time format JavaScript -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 
+  <!-- Include DataTables FixedColumns JavaScript -->
+  <script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
+
   <script>
     $(document).ready(function(){
       // Initialize DataTable
@@ -117,6 +125,12 @@
         searching: false, // Hide the search menu
         processing: true,
         serverSide: true,
+        fixedColumns: {
+          left: 3,
+          right: 2
+        },
+        scrollCollapse: true,
+        scrollX: true,
         columnDefs: [
           { targets: '_all', orderable: false } // Disable sorting for all columns
         ],
@@ -124,6 +138,7 @@
           url: window.location.origin + '/api/getCryptoPaymentReport',
           data: function (d) {
             d.orderId = $('#order_id').val();
+            d.partner = $('#partner').val();
             d.fromDate = $('#from_date').val();
             d.toDate = $('#to_date').val();
             d.address = $('#address').val();
@@ -154,6 +169,8 @@
           },
           { data: 'partner_name' },
           { data: 'order_id' },
+          { data: 'name' },
+          { data: 'email' },
           { data: 'currency' },
           {
             data: 'payment_amount',
@@ -186,37 +203,6 @@
               }
               return data;
             }
-          },
-          {
-            data: 'payment_status',
-            render: function (data, type, row, meta) {
-              if (type === 'display') {
-                let badgeClass = '';
-                let text = '';
-
-                switch (data) {
-                  case 'complete':
-                    badgeClass = 'bg-success';
-                    text = '<i class="fas fa-check"></i> Complete';
-                    break;
-                  case 'pending':
-                    badgeClass = 'bg-info';
-                    text = 'Pending...';
-                    break;
-                  case 'over':
-                    badgeClass = 'bg-danger';
-                    text = 'Over';
-                    break;
-                  default:
-                    badgeClass = '';
-                    text = data;
-                    break;
-                }
-
-                return `<span class="badge ${badgeClass}" style="margin-left: 10px;">${text}</span>`;
-              }
-              return data;
-            },
           },
           {
             data: 'fee',
@@ -253,6 +239,37 @@
               return data;
             },
           },
+          {
+            data: 'payment_status',
+            render: function (data, type, row, meta) {
+              if (type === 'display') {
+                let badgeClass = '';
+                let text = '';
+
+                switch (data) {
+                  case 'complete':
+                    badgeClass = 'bg-success';
+                    text = '<i class="fas fa-check"></i> Complete';
+                    break;
+                  case 'pending':
+                    badgeClass = 'bg-info';
+                    text = 'Pending...';
+                    break;
+                  case 'over':
+                    badgeClass = 'bg-danger';
+                    text = 'Over';
+                    break;
+                  default:
+                    badgeClass = '';
+                    text = data;
+                    break;
+                }
+
+                return `<span class="badge ${badgeClass}" style="margin-left: 10px;">${text}</span>`;
+              }
+              return data;
+            },
+          },
           { data: 'updated_at', render: function (data, type, row, meta){
               if (type === 'display') {
                 return moment(data).format('YY/M/D H:m:s');
@@ -264,6 +281,13 @@
         recordsTotal: 'total_data_size',
         recordsFiltered: 'searched_data_size',
       });
+
+      /*// Enable DataTables FixedColumns extension
+      let fixedColumns = new $.fn.dataTable.FixedColumns(dataTable, {
+        leftColumns: 3, // Number of columns to freeze on the left
+        rightColumns: 2, // Number of columns to freeze on the right
+      });*/
+
 
       // Function to trigger DataTable search
       function searchReport() {

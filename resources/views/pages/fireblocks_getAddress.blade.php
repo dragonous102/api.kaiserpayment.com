@@ -43,6 +43,18 @@
                       </select>
                     </div>
                   </div>
+                  <div class="form-group row">
+                    <label for="email" class="col-sm-3 col-form-label">Email</label>
+                    <div class="col-sm-9">
+                      <input type="text" class="form-control" id="email" name="email" placeholder="Enter the Email Address">
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <label for="name" class="col-sm-3 col-form-label">Name</label>
+                    <div class="col-sm-9">
+                      <input type="text" class="form-control" id="name" name="name" placeholder="Enter your Name">
+                    </div>
+                  </div>
                 </form>
                 <div class="mt-5" align="right">
                   <button type="button" id="btnGetAddress" onclick="getAddress()" class="btn btn-primary">
@@ -88,6 +100,8 @@
         amount: $('#amount').val(),
         productName: $('#productName').val(),
         currency: $('#currency').val(),
+        email: $('#email').val(),
+        name: $('#name').val(),
       };
 
       $.ajax({
