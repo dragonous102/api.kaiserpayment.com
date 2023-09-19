@@ -15,6 +15,7 @@ use http\Exception\RuntimeException;
 use Illuminate\Http\Request;
 use FireblocksSdkPhp\FireblocksSDK;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 use Mockery\Exception;
 
@@ -387,6 +388,15 @@ class FireBlocksController extends Controller
       'timestamp' => $timestamp,
       'body' => $body
     ])->setStatusCode($code);
+  }
+
+  public function webhook(Request $request){
+    Log::info("webhook received:");
+    Log::info(json_encode($request));
+
+    return response()->json([
+      'message' => 'ok'
+    ])->setStatusCode(200);
   }
 
   public function showCronJobPage(Request $request): string

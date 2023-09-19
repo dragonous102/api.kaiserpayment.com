@@ -35,3 +35,7 @@ Route::get('/fireblocks-test', 'FireBlocksController@showTestPage')->name('page.
 Route::post('/fireblocks-get-account', 'FireBlocksController@getAccount')->name('fireblocks.getAccount');
 Route::post('/fireblocks-get-account-balance', 'FireBlocksController@getAccountBalance');
 Route::post('/fireblocks-get-supported-assets', 'FireBlocksController@getSupportedAssets');
+
+//web hook https://api.kaiserpayment.com/fireblocks/webhook
+Route::post('/fireblocks/webhook', 'FireBlocksController@webhook');
+
