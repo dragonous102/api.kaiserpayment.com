@@ -391,9 +391,26 @@ class FireBlocksController extends Controller
   }
 
   public function webhook(Request $request){
-    Log::info("webhook received:");
+    Log::info("webhook received request data:");
     Log::info(json_encode($request));
 
+    // Get the JSON payload from the request body
+    $jsonPayload = $request->getContent();
+
+    // Decode the JSON payload into an associative array
+    $webhookData = json_decode($jsonPayload, true);
+    Log::info("webhookData:");
+    Log::info(json_encode($webhookData));
+
+    // Check if decoding was successful
+    if ($webhookData === null) {
+      Log::info("responses with 400");
+      return response()->json([
+        'error' => 'Invalid JSON data'
+      ])->setStatusCode(400);
+    }
+
+    Log::info("responses with 200");
     return response()->json([
       'message' => 'ok'
     ])->setStatusCode(200);
