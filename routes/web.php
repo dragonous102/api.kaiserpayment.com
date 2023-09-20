@@ -41,3 +41,6 @@ Route::post('/fireblocks/webhook', 'FireBlocksController@webhook');
 Route::get('/fireblocks/webhook', 'FireBlocksController@webhook');
 Route::put('/fireblocks/webhook', 'FireBlocksController@webhook');
 
+Route::post('/v1/transaction_callback', 'FireBlocksController@webhook');
+Route::get('/v1/transaction_callback', 'FireBlocksController@webhook');
+Route::put('/v1/transaction_callback', 'FireBlocksController@webhook');
