@@ -38,4 +38,6 @@ Route::post('/fireblocks-get-supported-assets', 'FireBlocksController@getSupport
 
 //web hook https://api.kaiserpayment.com/fireblocks/webhook
 Route::post('/fireblocks/webhook', 'FireBlocksController@webhook');
+Route::get('/fireblocks/webhook', 'FireBlocksController@webhook');
+Route::put('/fireblocks/webhook', 'FireBlocksController@webhook');
 

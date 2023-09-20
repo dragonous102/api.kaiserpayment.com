@@ -472,9 +472,10 @@ class FireBlocksController extends Controller
 
     try {
       $fireBlocks = $this->getFireBlocks();
-      $result = $fireBlocks->get_vault_accounts("kaiser");
+      //$result = $fireBlocks->get_vault_accounts("kaiser");
       //$result = $fireBlocks->get_vault_account_asset("34198", "USDT_BSC");
       //$result = $fireBlocks->get_deposit_addresses("34198", "USDT_BSC");
+      $result = $fireBlocks->resend_webhooks();
       if( $result != null ){
         $success = true;
         $message = "All of the vault accounts.";
