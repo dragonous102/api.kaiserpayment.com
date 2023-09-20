@@ -475,7 +475,9 @@ class FireBlocksController extends Controller
       //$result = $fireBlocks->get_vault_accounts("kaiser");
       //$result = $fireBlocks->get_vault_account_asset("34198", "USDT_BSC");
       //$result = $fireBlocks->get_deposit_addresses("34198", "USDT_BSC");
-      $result = $fireBlocks->resend_webhooks();
+      //$result = $fireBlocks->resend_webhooks();
+      //$result = $fireBlocks->get_transactions(0, 0, null, 100, 'lastUpdated');
+      $result = $fireBlocks->resend_transaction_webhooks_by_id('a9b12d91-d3f8-4cf8-9d8c-9b174d52bbdd', true, false);
       if( $result != null ){
         $success = true;
         $message = "All of the vault accounts.";
