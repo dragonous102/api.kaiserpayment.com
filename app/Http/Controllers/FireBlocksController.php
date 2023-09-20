@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 use Mockery\Exception;
+use Safe\Exceptions\FilesystemException;
 
 class FireBlocksController extends Controller
 {
@@ -390,7 +391,13 @@ class FireBlocksController extends Controller
     ])->setStatusCode($code);
   }
 
+  /**
+   * @throws FilesystemException
+   */
   public function webhook(Request $request){
+    $raw = file_get_contents(("php://input"));
+    Log::info("raw data:");
+    Log::info(json_encode($raw));
     Log::info("webhook received request data:");
     Log::info(json_encode($request));
     Log::info($request->header("x-webhook-secret"));
