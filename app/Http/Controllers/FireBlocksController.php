@@ -415,7 +415,7 @@ class FireBlocksController extends Controller
       Log::info("responses with 400");
       return response()->json([
         'error' => 'Invalid JSON data'
-      ])->setStatusCode(400);
+      ])->setStatusCode(200);
     }
 
     Log::info("responses with 200");
