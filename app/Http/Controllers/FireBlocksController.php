@@ -395,12 +395,13 @@ class FireBlocksController extends Controller
    * @throws FilesystemException
    */
   public function webhook(Request $request){
-    $raw = file_get_contents(("php://input"));
-    Log::info("raw data:");
-    Log::info(json_encode($raw));
-    Log::info("webhook received request data:");
-    Log::info(json_encode($request));
-    Log::info($request->header("x-webhook-secret"));
+    // Log the entire request object
+    Log::info('Request Data:', $request->all());
+
+    // You can also log specific parts of the request if needed
+    Log::info('Headers:', $request->header());
+    Log::info('Query Parameters:', $request->query());
+    Log::info('Request Input:', $request->input());
 
     // Get the JSON payload from the request body
     $jsonPayload = $request->getContent();
@@ -415,7 +416,7 @@ class FireBlocksController extends Controller
       Log::info("responses with 400");
       return response()->json([
         'error' => 'Invalid JSON data'
-      ])->setStatusCode(200);
+      ])->setStatusCode(400);
     }
 
     Log::info("responses with 200");
