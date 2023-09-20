@@ -393,6 +393,7 @@ class FireBlocksController extends Controller
   public function webhook(Request $request){
     Log::info("webhook received request data:");
     Log::info(json_encode($request));
+    Log::info($request->header("x-webhook-secret"));
 
     // Get the JSON payload from the request body
     $jsonPayload = $request->getContent();
