@@ -440,13 +440,19 @@ class FireBlocksController extends Controller
           $sourceAddress = $webhookData['data']['sourceAddress'];
           $destinationAddress = $webhookData['data']['destinationAddress'];
           $status = strtolower($webhookData['data']['status']);//CONFIRMING, COMPLETED
-
+          DB::enableQueryLog();
           // Find order_address object with vault account name.
           $fbDepositOrderAddress = FbDepositOrderAddress::whereHas('address', function ($query) use ($vaultAccountId, $assetId, $destinationAddress) {
             $query->where('vault_account_id', $vaultAccountId)
               ->where('asset_id', $assetId)
               ->where('address', $destinationAddress);
           })->first();
+          // Get the executed SQL queries
+          $queryLog = DB::getQueryLog();
+
+// The last query executed should be the one you're interested in
+          $lastQuery = end($queryLog)['query'];
+          echo $lastQuery;
           $predictAmount = FbDepositOrder::where('id', $fbDepositOrderAddress->deposit_order_id)->value('amount');
           if( $fbDepositOrderAddress == null || $predictAmount == null ){
             Log::info("Received, but not for kaiser account id or asset id: $vaultAccountId, $assetId");
