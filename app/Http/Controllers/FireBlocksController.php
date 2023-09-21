@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 use Mockery\Exception;
 use Safe\Exceptions\FilesystemException;
+use Illuminate\Database\Eloquent\Builder;
 
 class FireBlocksController extends Controller
 {
@@ -396,33 +397,85 @@ class FireBlocksController extends Controller
    */
   public function webhook(Request $request){
     // Log the entire request object
-    Log::info('Request Data:', $request->all());
+/*    Log::info('Request Data:', $request->all());
 
     // You can also log specific parts of the request if needed
     Log::info('Headers:', $request->header());
     Log::info('Query Parameters:', $request->query());
-    Log::info('Request Input:', $request->input());
+    Log::info('Request Input:', $request->input());*/
 
     // Get the JSON payload from the request body
     $jsonPayload = $request->getContent();
 
     // Decode the JSON payload into an associative array
     $webhookData = json_decode($jsonPayload, true);
-    Log::info("webhookData:");
-    Log::info(json_encode($webhookData));
-
-    // Check if decoding was successful
-    if ($webhookData === null) {
-      Log::info("responses with 400");
+    if( $webhookData == null || count($webhookData) == 0 ){
+      Log::info("responses with 400 because request body is null.");
       return response()->json([
-        'error' => 'Invalid JSON data'
+        'error' => 'Empty body data.'
       ])->setStatusCode(400);
     }
+    else{
+      $event = $webhookData['type'];
+      if(!isset($event) || ($event != 'TRANSACTION_CREATED' && $event != 'TRANSACTION_STATUS_UPDATED')){
+        Log::info("Received, but not transaction event: $event");
+        return response()->json([
+          'success' => "Received, but not transaction event: $event",
+        ])->setStatusCode(200);
+      }
+      else{
+        $txId = $webhookData['data']['id'];
+        $assetId = $webhookData['data']['assetId'];
+        $dstType = $webhookData['data']['destination']['type'];
+        if( $dstType != 'VAULT_ACCOUNT') {
+          Log::info("Received, but not for vault account: $dstType");
+          return response()->json([
+            'success' => "Received, but not for vault account: $dstType",
+          ])->setStatusCode(200);
+        }
+        else{
+          $vaultAccountId = $webhookData['data']['destination']['id'];
+          $amount = $webhookData['data']['amount'];
+          $networkFee = $webhookData['data']['networkFee'];
+          $sourceAddress = $webhookData['data']['sourceAddress'];
+          $destinationAddress = $webhookData['data']['destinationAddress'];
+          $status = strtolower($webhookData['data']['status']);//CONFIRMING, COMPLETED
 
-    Log::info("responses with 200");
-    return response()->json([
-      'message' => 'ok'
-    ])->setStatusCode(200);
+          // Find order_address object with vault account name.
+          $fbDepositOrderAddress = FbDepositOrderAddress::whereHas('address', function (Builder $query) use ($vaultAccountId) {
+            $query->where('vault_account_id', $vaultAccountId);
+          })->where('asset_id', $assetId)->first();
+          $predictAmount = FbDepositOrder::where('id', $fbDepositOrderAddress->deposit_order_id)->value('amount');
+          if( $fbDepositOrderAddress == null || $predictAmount == null ){
+            Log::info("Received, but not for kaiser account id or asset id: $vaultAccountId, $assetId");
+            return response()->json([
+              'success' => "Received, but not for kaiser account id or asset id: $vaultAccountId, $assetId",
+            ])->setStatusCode(200);
+          }
+          else{
+            $fbDepositOrderAddress->after_amount += $amount;
+            $fbDepositOrderAddress->net_amount = $amount;
+            if( $status == 'COMPLETED' ){
+              if( $predictAmount == $amount )
+                $status = Constants::$PAYMENT_STATUS['complete'];
+              else if( $predictAmount < $amount )
+                $status = Constants::$PAYMENT_STATUS['over'];
+              else
+                $status = Constants::$PAYMENT_STATUS['pending'];
+            }
+            $fbDepositOrderAddress->payment_status = $status;
+            $fbDepositOrderAddress->description = 'user';
+            $fbDepositOrderAddress->related_address = $sourceAddress;
+            $fbDepositOrderAddress->txid = $txId;
+            $fbDepositOrderAddress->save();
+            Log::info("responses with 200");
+            return response()->json([
+              'message' => 'ok'
+            ])->setStatusCode(200);
+          }
+        }
+      }
+    }
   }
 
   public function showCronJobPage(Request $request): string
@@ -468,7 +521,7 @@ class FireBlocksController extends Controller
     $absolutePath = base_path($relativePath);
     $private_key = file_get_contents($absolutePath);
     $api_key = config('fireblocks.api_key');
-    return new FireblocksSDK($private_key, $api_key);
+    return new FireblocksSDK($private_key, $api_key, config('fireblocks.api_base_url'));
   }
 
   /**
@@ -484,10 +537,10 @@ class FireBlocksController extends Controller
       $fireBlocks = $this->getFireBlocks();
       //$result = $fireBlocks->get_vault_accounts("kaiser");
       //$result = $fireBlocks->get_vault_account_asset("34198", "USDT_BSC");
-      $result = $fireBlocks->get_deposit_addresses("34794", "USDT_ERC20");
+      //$result = $fireBlocks->get_deposit_addresses("34794", "USDT_ERC20");
       //$result = $fireBlocks->resend_webhooks();
       //$result = $fireBlocks->get_transactions(0, 0, null, 100, 'lastUpdated');
-      //$result = $fireBlocks->resend_transaction_webhooks_by_id('a9b12d91-d3f8-4cf8-9d8c-9b174d52bbdd', true, false);
+      $result = $fireBlocks->resend_transaction_webhooks_by_id('d6ba0be4-9a08-42c2-84e9-47dd31c3dbbf', true, false);
       if( $result != null ){
         $success = true;
         $message = "All of the vault accounts.";

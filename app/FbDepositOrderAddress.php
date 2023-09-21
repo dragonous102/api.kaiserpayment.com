@@ -22,6 +22,7 @@ class FbDepositOrderAddress extends Model
     'action_status',
     'description',
     'related_address',
+    'txid',
   ];
 
   /**

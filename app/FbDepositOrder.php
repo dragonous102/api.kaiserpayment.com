@@ -17,6 +17,8 @@ class FbDepositOrder extends Model
     'amount',
     'product_name',
     'currency',
+    'email',
+    'name',
   ];
 
   public function partner(): BelongsTo

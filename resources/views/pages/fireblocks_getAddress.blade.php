@@ -39,6 +39,7 @@
                         <option value="USDC">USD Coin</option>
                         <option value="USDC_POLYGON">USDC (Polygon)</option>
                         <option value="BNB_BSC">BNB Smart Chain</option>
+                        <option value="BNB_TEST">BNB_TEST</option>
                         <option value="TRX">Tron</option>
                       </select>
                     </div>
