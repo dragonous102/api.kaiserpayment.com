@@ -546,7 +546,7 @@ class FireBlocksController extends Controller
       //$result = $fireBlocks->get_deposit_addresses("34794", "USDT_ERC20");
       //$result = $fireBlocks->resend_webhooks();
       //$result = $fireBlocks->get_transactions(0, 0, null, 1000, 'lastUpdated', null, 'USDT_BSC');
-      $result = $fireBlocks->resend_transaction_webhooks_by_id('a9b12d91-d3f8-4cf8-9d8c-9b174d52bbdd', true, false);
+      $result = $fireBlocks->resend_transaction_webhooks_by_id('a9b12d91-d3f8-4cf8-9d8c-9b174d52bbdd', false, true);
       if( $result != null ){
         $success = true;
         $message = "All of the vault accounts.";
