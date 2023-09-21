@@ -458,13 +458,16 @@ class FireBlocksController extends Controller
           else{
             $fbDepositOrderAddress->after_amount += $amount;
             $fbDepositOrderAddress->net_amount = $amount;
-            if( $status == 'COMPLETED' ){
+            if( $status == 'completed' ){
               if( $predictAmount == $amount )
                 $status = Constants::$PAYMENT_STATUS['complete'];
               else if( $predictAmount < $amount )
                 $status = Constants::$PAYMENT_STATUS['over'];
               else
                 $status = Constants::$PAYMENT_STATUS['pending'];
+            }
+            else{
+              $status = Constants::$PAYMENT_STATUS['pending'];
             }
             $fbDepositOrderAddress->payment_status = $status;
             $fbDepositOrderAddress->description = 'user';
