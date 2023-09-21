@@ -436,7 +436,6 @@ class FireBlocksController extends Controller
         else{
           $vaultAccountId = $webhookData['data']['destination']['id'];
           $amount = $webhookData['data']['amount'];
-          $networkFee = $webhookData['data']['networkFee'];
           $sourceAddress = $webhookData['data']['sourceAddress'];
           $destinationAddress = $webhookData['data']['destinationAddress'];
           $status = strtolower($webhookData['data']['status']);//CONFIRMING, COMPLETED
@@ -447,37 +446,43 @@ class FireBlocksController extends Controller
               ->where('asset_id', $assetId)
               ->where('address', $destinationAddress);
           })->first();
-          Log::info(json_encode($fbDepositOrderAddress));
-          $predictAmount = FbDepositOrder::where('id', $fbDepositOrderAddress->deposit_order_id)->value('amount');
-          if( $fbDepositOrderAddress == null || $predictAmount == null ){
-            Log::info("Received, but not for kaiser account id or asset id: $vaultAccountId, $assetId");
+          if( $fbDepositOrderAddress == null ){
             return response()->json([
-              'success' => "Received, but not for kaiser account id or asset id: $vaultAccountId, $assetId",
-            ])->setStatusCode(200);
+              'success' => "There is no order_address object: $vaultAccountId, $assetId, $destinationAddress",
+            ])->setStatusCode(400);
           }
           else{
-            $fbDepositOrderAddress->after_amount += $amount;
-            $fbDepositOrderAddress->net_amount = $amount;
-            if( $status == 'completed' ){
-              if( $predictAmount === $amount )
-                $status = Constants::$PAYMENT_STATUS['complete'];
-              else if( $predictAmount < $amount )
-                $status = Constants::$PAYMENT_STATUS['over'];
-              else
-                $status = Constants::$PAYMENT_STATUS['pending'];
+            $predictAmount = FbDepositOrder::where('id', $fbDepositOrderAddress->deposit_order_id)->value('amount');
+            if( $fbDepositOrderAddress == null || $predictAmount == null ){
+              Log::info("Received, but not for kaiser account id or asset id: $vaultAccountId, $assetId");
+              return response()->json([
+                'success' => "Received, but not for kaiser account id or asset id: $vaultAccountId, $assetId",
+              ])->setStatusCode(200);
             }
             else{
-              $status = Constants::$PAYMENT_STATUS['pending'];
+              $fbDepositOrderAddress->after_amount += $amount;
+              $fbDepositOrderAddress->net_amount = $amount;
+              if( $status == 'completed' ){
+                if( $predictAmount === $amount )
+                  $status = Constants::$PAYMENT_STATUS['complete'];
+                else if( $predictAmount < $amount )
+                  $status = Constants::$PAYMENT_STATUS['over'];
+                else
+                  $status = Constants::$PAYMENT_STATUS['pending'];
+              }
+              else{
+                $status = Constants::$PAYMENT_STATUS['pending'];
+              }
+              $fbDepositOrderAddress->payment_status = $status;
+              $fbDepositOrderAddress->description = 'user';
+              $fbDepositOrderAddress->related_address = $sourceAddress;
+              $fbDepositOrderAddress->txid = $txId;
+              $fbDepositOrderAddress->save();
+              Log::info("responses with 200");
+              return response()->json([
+                'message' => 'ok'
+              ])->setStatusCode(200);
             }
-            $fbDepositOrderAddress->payment_status = $status;
-            $fbDepositOrderAddress->description = 'user';
-            $fbDepositOrderAddress->related_address = $sourceAddress;
-            $fbDepositOrderAddress->txid = $txId;
-            $fbDepositOrderAddress->save();
-            Log::info("responses with 200");
-            return response()->json([
-              'message' => 'ok'
-            ])->setStatusCode(200);
           }
         }
       }
@@ -545,8 +550,8 @@ class FireBlocksController extends Controller
       //$result = $fireBlocks->get_vault_account_asset("34198", "USDT_BSC");
       //$result = $fireBlocks->get_deposit_addresses("34794", "USDT_ERC20");
       //$result = $fireBlocks->resend_webhooks();
-      //$result = $fireBlocks->get_transactions(0, 0, null, 1000, 'lastUpdated', null, 'USDT_BSC');
-      $result = $fireBlocks->resend_transaction_webhooks_by_id('a9b12d91-d3f8-4cf8-9d8c-9b174d52bbdd', false, true);
+      $result = $fireBlocks->get_transactions(0, 0, null, 10000, 'lastUpdated', null, 'BNB_BSC');
+      //$result = $fireBlocks->resend_transaction_webhooks_by_id('a9b12d91-d3f8-4cf8-9d8c-9b174d52bbdd', false, true);
       if( $result != null ){
         $success = true;
         $message = "All of the vault accounts.";
