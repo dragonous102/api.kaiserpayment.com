@@ -45,7 +45,7 @@ class ScanCryptoAddress extends Command
   public function handle(): int
   {
     return 0;
-    $startTime = now();
+    /*$startTime = now();
 
     $pendingOrders = FbDepositOrderAddress::where('payment_status', Constants::$PAYMENT_STATUS['pending'])
       ->orderBy('created_at', 'desc')
@@ -103,6 +103,6 @@ class ScanCryptoAddress extends Command
       Log::info("Failed to store monitor log into database reason: $errorMsg");
     }
 
-    return 0;
+    return 0;*/
   }
 }
