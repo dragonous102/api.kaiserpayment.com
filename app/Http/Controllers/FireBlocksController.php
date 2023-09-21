@@ -546,11 +546,16 @@ class FireBlocksController extends Controller
     try {
 
       $fireBlocks = $this->getFireBlocks();
-      //$result = $fireBlocks->get_vault_accounts("kaiser");
+      /*$result = $fireBlocks->get_vault_accounts("kaiser");
+      foreach( $result as $account ){
+        if( $account['hiddenOnUI'])
+          $fireBlocks->unhide_vault_account($account['id']);
+      }*/
+      $result = $fireBlocks->get_vault_accounts("kaiser");
       //$result = $fireBlocks->get_vault_account_asset("34198", "USDT_BSC");
       //$result = $fireBlocks->get_deposit_addresses("34794", "USDT_ERC20");
       //$result = $fireBlocks->resend_webhooks();
-      $result = $fireBlocks->get_transactions(0, 0, null, 10000, 'lastUpdated', null, 'BNB_BSC');
+      //$result = $fireBlocks->get_transactions(0, 0, null, 10000, 'lastUpdated', null, 'BNB_BSC');
       //$result = $fireBlocks->resend_transaction_webhooks_by_id('a9b12d91-d3f8-4cf8-9d8c-9b174d52bbdd', false, true);
       if( $result != null ){
         $success = true;
