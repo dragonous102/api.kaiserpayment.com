@@ -44,6 +44,7 @@ class ScanCryptoAddress extends Command
    */
   public function handle(): int
   {
+    return 0;
     $startTime = now();
 
     $pendingOrders = FbDepositOrderAddress::where('payment_status', Constants::$PAYMENT_STATUS['pending'])
