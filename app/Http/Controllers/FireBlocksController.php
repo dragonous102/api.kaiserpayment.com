@@ -19,7 +19,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 use Mockery\Exception;
 use Safe\Exceptions\FilesystemException;
-use Illuminate\Database\Eloquent\Builder;
 
 class FireBlocksController extends Controller
 {
@@ -552,6 +551,7 @@ class FireBlocksController extends Controller
           $fireBlocks->unhide_vault_account($account['id']);
       }*/
       $result = $fireBlocks->get_vault_accounts("kaiser");
+      //$result = $fireBlocks->unhide_vault_account(34260);
       //$result = $fireBlocks->get_vault_account_asset("34198", "USDT_BSC");
       //$result = $fireBlocks->get_deposit_addresses("34794", "USDT_ERC20");
       //$result = $fireBlocks->resend_webhooks();

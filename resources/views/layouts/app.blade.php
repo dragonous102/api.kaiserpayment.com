@@ -53,6 +53,12 @@
             <li><a class="dropdown-item" href="{{ route('page.fireblocks.test') }}">Fireblocks API Test</a></li>
           </ul>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ route('admin.resetPasswordPage') }}">Reset Password</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ route('admin.logout') }}">Logout</a>
+        </li>
       </ul>
     </div>
   </div>

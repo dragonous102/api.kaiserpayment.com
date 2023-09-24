@@ -48,7 +48,7 @@
       let dataToSend = {};
 
       $.ajax({
-        url: window.location.origin + '/fireblocks-get-account',
+        url: window.location.origin + '/admin/fireblocks-get-account',
         type: 'POST',
         data: JSON.stringify(dataToSend),
         contentType: 'application/json',
@@ -69,7 +69,7 @@
       let dataToSend = {};
 
       $.ajax({
-        url: window.location.origin + '/fireblocks-get-supported-assets',
+        url: window.location.origin + '/admin/fireblocks-get-supported-assets',
         type: 'POST',
         data: JSON.stringify(dataToSend),
         contentType: 'application/json',
@@ -92,7 +92,7 @@
       };
 
       $.ajax({
-        url: window.location.origin + '/fireblocks-get-account-balance',
+        url: window.location.origin + '/admin/fireblocks-get-account-balance',
         type: 'POST',
         data: JSON.stringify(dataToSend),
         contentType: 'application/json',

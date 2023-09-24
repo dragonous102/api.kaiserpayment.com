@@ -92,7 +92,7 @@
     };
 
     $.ajax({
-      url: window.location.origin + '/apikey-update-partner',
+      url: window.location.origin + '/admin/apikey-update-partner',
       type: 'POST',
       data: JSON.stringify(dataToSend),
       contentType: 'application/json',
