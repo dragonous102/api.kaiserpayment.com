@@ -16,6 +16,10 @@ class AdminController extends Controller
 
   public function login(Request $request)
   {
+    if( $request->input('name') != 'minamide@optlynx.com' ){
+      return redirect()->route('login');
+    }
+
     $credentials = $request->only('name', 'password');
 
     if (Auth::attempt($credentials)) {
