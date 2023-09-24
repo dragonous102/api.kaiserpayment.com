@@ -46,5 +46,6 @@ Route::middleware(['auth'])->group(function () {
   Route::post('/admin/fireblocks-get-account', 'FireBlocksController@getAccount')->name('fireblocks.getAccount');
   Route::post('/admin/fireblocks-get-account-balance', 'FireBlocksController@getAccountBalance');
   Route::post('/admin/fireblocks-get-supported-assets', 'FireBlocksController@getSupportedAssets');
+  Route::post('/admin/fireblocks-unhide-accounts', 'FireBlocksController@unHideVaultAccount');
 });
 

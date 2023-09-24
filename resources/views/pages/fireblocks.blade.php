@@ -14,6 +14,16 @@
           </div>
         </div>
 
+        <!-- 2nd Box: Un-hide vault accounts -->
+        <div class="card mb-3">
+          <div class="card-header">Un-hide All Kaiser Vault Accounts</div>
+          <div class="card-body">
+            <button id="unhideVaultAccounts" class="btn btn-success mb-3" onclick="unhideVaultAccounts();">Un-hide All Kaiser Vault Accounts</button>
+            <div class="mb-3" id="unhideResult">
+            </div>
+          </div>
+        </div>
+
         <!-- 3rd Box: Supported Assets -->
         <div class="card mb-3">
           <div class="card-header">List of Supported Assets</div>
@@ -82,6 +92,57 @@
         },
         error: function(xhr, textStatus) {
           $('#supportedAssets').html(xhr.responseJSON.message);
+        }
+      });
+    }
+
+    function unhideVaultAccounts(){
+      let html = 'Processing... 0/0 ( 0% ) completed.';
+      $('#unhideResult').html(html);
+
+      let dataToSend = {};
+
+      $.ajax({
+        url: window.location.origin + '/admin/fireblocks-get-account',
+        type: 'POST',
+        data: JSON.stringify(dataToSend),
+        contentType: 'application/json',
+        headers: {
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+          let count = response.body.length;
+          for( let i = 0; i < count; i++ ){
+            if( !response.body[i]['hiddenOnUI'] ){
+              html = 'Processing... ' + (i+1) + '/' + count + ' ( ' + ((i+1)*100/count).toFixed(1) + '% ) completed.';
+              $('#unhideResult').html(html);
+              continue;
+            }
+
+            let dataToSend = {
+              id: response.body[i]['id'],
+            };
+
+            $.ajax({
+              url: window.location.origin + '/admin/fireblocks-unhide-accounts',
+              type: 'POST',
+              data: JSON.stringify(dataToSend),
+              contentType: 'application/json',
+              headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+              },
+              success: function(response1) {
+                html = 'Processing... ' + (i+1) + '/' + count + ' ( ' + ((i+1)*100/count).toFixed(1) + '% ) completed.';
+                $('#unhideResult').html(html);
+              },
+              error: function(xhr, textStatus) {
+                $('#unhideResult').html(xhr.responseJSON.message);
+              }
+            });
+          }
+        },
+        error: function(xhr, textStatus) {
+          $('#unhideResult').html(xhr.responseJSON.message);
         }
       });
     }

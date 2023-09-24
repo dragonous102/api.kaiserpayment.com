@@ -581,6 +581,40 @@ class FireBlocksController extends Controller
     ])->setStatusCode($code);
   }
 
+  public function unHideVaultAccount(Request $request){
+  $code = 200;
+  $success = false;
+  $timestamp = now()->toIso8601String();
+  $body = [];
+
+  try {
+    $accountId = $request->input('id');
+    $fireBlocks = $this->getFireBlocks();
+    $result = $fireBlocks->unhide_vault_account($accountId);
+    if( $result != null && isset($result['success']) && $result['success']){
+      $success = true;
+      $message = "Succeeded to unhide the vault accounts.";
+      $body = $result;
+    }
+    else{
+      $message = "Failed to unhide the vault accounts.";
+      $code = 400;
+    }
+  }
+  catch (Exception $e){
+    $code = 500;
+    $message = $e->getMessage();
+  }
+
+  return response()->json([
+    'code' => $code,
+    'success' => $success,
+    'message' => $message,
+    'timestamp' => $timestamp,
+    'body' => $body,
+  ])->setStatusCode($code);
+}
+
   public function getAccountBalance(Request $request){
     $code = 200;
     $success = false;
