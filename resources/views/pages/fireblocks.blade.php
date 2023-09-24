@@ -18,8 +18,8 @@
         <div class="card mb-3">
           <div class="card-header">Un-hide All Kaiser Vault Accounts</div>
           <div class="card-body">
-            <button id="unhideVaultAccounts" class="btn btn-success mb-3" onclick="unhideVaultAccounts();">Un-hide All Kaiser Vault Accounts</button>
-            <div class="mb-3" id="unhideResult">
+            <button id="unhideVaultAccounts" class="btn btn-success mb-3" onclick="startUnHideVaultAccounts();">Un-hide All Kaiser Vault Accounts</button>
+            <div class="mb-3" id="unHideResult">
             </div>
           </div>
         </div>
@@ -96,9 +96,12 @@
       });
     }
 
-    function unhideVaultAccounts(){
+    let g_hideVaultAccountArray = [];
+    let g_totalAccountLength = 0;
+    let g_proceedAccountLength = 0;
+    function startUnHideVaultAccounts(){
       let html = 'Processing... 0/0 ( 0% ) completed.';
-      $('#unhideResult').html(html);
+      $('#unHideResult').html(html);
 
       let dataToSend = {};
 
@@ -111,38 +114,53 @@
           'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
         success: function(response) {
-          let count = response.body.length;
-          for( let i = 0; i < count; i++ ){
-            if( !response.body[i]['hiddenOnUI'] ){
-              html = 'Processing... ' + (i+1) + '/' + count + ' ( ' + ((i+1)*100/count).toFixed(1) + '% ) completed.';
-              $('#unhideResult').html(html);
-              continue;
-            }
-
-            let dataToSend = {
-              id: response.body[i]['id'],
-            };
-
-            $.ajax({
-              url: window.location.origin + '/admin/fireblocks-unhide-accounts',
-              type: 'POST',
-              data: JSON.stringify(dataToSend),
-              contentType: 'application/json',
-              headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-              },
-              success: function(response1) {
-                html = 'Processing... ' + (i+1) + '/' + count + ' ( ' + ((i+1)*100/count).toFixed(1) + '% ) completed.';
-                $('#unhideResult').html(html);
-              },
-              error: function(xhr, textStatus) {
-                $('#unhideResult').html(xhr.responseJSON.message);
-              }
-            });
-          }
+          g_hideVaultAccountArray = response.body;
+          g_totalAccountLength = g_hideVaultAccountArray.length;
+          g_proceedAccountLength = 0;
+          unHideVaultAccount();
         },
         error: function(xhr, textStatus) {
-          $('#unhideResult').html(xhr.responseJSON.message);
+          $('#unHideResult').html(xhr.responseJSON.message);
+        }
+      });
+    }
+
+    function unHideVaultAccount(){
+      if( g_totalAccountLength === 0 || g_hideVaultAccountArray.length === 0 )
+        return;
+
+      let account = g_hideVaultAccountArray.pop();
+
+      if( !account['hiddenOnUI'] ){
+        g_proceedAccountLength++;
+        let html = 'Processing... ' + (g_proceedAccountLength) + '/' + g_totalAccountLength + ' ( ' + (g_proceedAccountLength*100/g_totalAccountLength).toFixed(1) + '% ) completed.';
+        $('#unHideResult').html(html);
+        unHideVaultAccount();
+        return;
+      }
+
+      let dataToSend = {
+        id: account['id'],
+      };
+
+      $.ajax({
+        url: window.location.origin + '/admin/fireblocks-unhide-accounts',
+        type: 'POST',
+        data: JSON.stringify(dataToSend),
+        contentType: 'application/json',
+        headers: {
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response1) {
+          g_proceedAccountLength++;
+          let html = 'Processing... ' + (g_proceedAccountLength) + '/' + g_totalAccountLength + ' ( ' + (g_proceedAccountLength*100/g_totalAccountLength).toFixed(1) + '% ) completed.';
+          $('#unHideResult').html(html);
+          unHideVaultAccount();
+        },
+        error: function(xhr, textStatus) {
+          g_proceedAccountLength++;
+          $('#unHideResult').html(xhr.responseJSON.message);
+          unHideVaultAccount();
         }
       });
     }
