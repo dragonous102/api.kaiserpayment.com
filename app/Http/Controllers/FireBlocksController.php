@@ -477,6 +477,15 @@ class FireBlocksController extends Controller
               $fbDepositOrderAddress->related_address = $sourceAddress;
               $fbDepositOrderAddress->txid = $txId;
               $fbDepositOrderAddress->save();
+
+              // un-hide account
+              $fireBlocks = $this->getFireBlocks();
+              $account = $fireBlocks->get_vault_account_by_id( $vaultAccountId );
+              if( $account['hiddenOnUI'] ) {
+                $fireBlocks->unhide_vault_account($vaultAccountId);
+                Log::info("Un-hided a hidden account: $vaultAccountId");
+              }
+
               Log::info("responses with 200");
               return response()->json([
                 'message' => 'ok'
@@ -550,13 +559,15 @@ class FireBlocksController extends Controller
         if( $account['hiddenOnUI'])
           $fireBlocks->unhide_vault_account($account['id']);
       }*/
-      $result = $fireBlocks->get_vault_accounts("kaiser");
+      //$result = $fireBlocks->get_vault_accounts("kaiser");
+      //$result = $fireBlocks->hide_vault_account( 34946 );
+      //$result = $result['hiddenOnUI'];
       //$result = $fireBlocks->unhide_vault_account(34260);
       //$result = $fireBlocks->get_vault_account_asset("34198", "USDT_BSC");
       //$result = $fireBlocks->get_deposit_addresses("34794", "USDT_ERC20");
       //$result = $fireBlocks->resend_webhooks();
       //$result = $fireBlocks->get_transactions(0, 0, null, 10000, 'lastUpdated', null, 'BNB_BSC');
-      //$result = $fireBlocks->resend_transaction_webhooks_by_id('a9b12d91-d3f8-4cf8-9d8c-9b174d52bbdd', false, true);
+      $result = $fireBlocks->resend_transaction_webhooks_by_id('9df903aa-f4c9-4a4a-90e0-75b564a50d24', true, true);
       if( $result != null ){
         $success = true;
         $message = "All of the vault accounts.";
