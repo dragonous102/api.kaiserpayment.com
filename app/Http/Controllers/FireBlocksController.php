@@ -559,7 +559,7 @@ class FireBlocksController extends Controller
         if( $account['hiddenOnUI'])
           $fireBlocks->unhide_vault_account($account['id']);
       }*/
-      //$result = $fireBlocks->get_vault_accounts("kaiser");
+      $result = $fireBlocks->get_vault_accounts("kaiser");
       //$result = $fireBlocks->hide_vault_account( 34946 );
       //$result = $result['hiddenOnUI'];
       //$result = $fireBlocks->unhide_vault_account(34260);
@@ -567,7 +567,7 @@ class FireBlocksController extends Controller
       //$result = $fireBlocks->get_deposit_addresses("34794", "USDT_ERC20");
       //$result = $fireBlocks->resend_webhooks();
       //$result = $fireBlocks->get_transactions(0, 0, null, 10000, 'lastUpdated', null, 'BNB_BSC');
-      $result = $fireBlocks->resend_transaction_webhooks_by_id('9df903aa-f4c9-4a4a-90e0-75b564a50d24', true, true);
+      //$result = $fireBlocks->resend_transaction_webhooks_by_id('9df903aa-f4c9-4a4a-90e0-75b564a50d24', true, true);
       if( $result != null ){
         $success = true;
         $message = "All of the vault accounts.";
