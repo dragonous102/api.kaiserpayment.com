@@ -19,6 +19,7 @@ class Kernel extends HttpKernel
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         \App\Http\Middleware\TrustProxies::class,
+        \App\Http\Middleware\Cors::class,
     ];
 
     /**
@@ -37,9 +38,14 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\LocaleMiddleware::class,
             \App\Http\Middleware\CorsMiddleware::class,
+            \App\Http\Middleware\Cors::class,
+            \Fruitcake\Cors\HandleCors::class,
         ],
 
         'api' => [
+            \Fruitcake\Cors\HandleCors::class,
+            \App\Http\Middleware\CorsMiddleware::class,
+            \App\Http\Middleware\Cors::class,
             'throttle:60,1',
             'bindings',
         ],
