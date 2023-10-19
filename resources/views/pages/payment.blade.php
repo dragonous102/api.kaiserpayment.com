@@ -64,7 +64,7 @@
           data: JSON.stringify(dataToSend),
           contentType: 'application/json',
           headers: {
-            'Authorization': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjEiLCJuYW1lIjoiS0FJU0VSIiwiZG9tYWluIjoiQVBJLktBSVNFUlBBWU1FTlQuQ09NIiwiZmVlIjoiNyIsImV4cCI6NDg0OTU3OTQxNH0.Tqlf_hxqvYu9u-Qw4pUMdHV507CZm48HUnVvfxC8DsQ'
+            'Authorization': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjEiLCJuYW1lIjoiS0FJU0VSIiwiZG9tYWluIjoiQVBJLktBSVNFUlBBWU1FTlQuQ09NIiwiZmVlIjoiOCIsImV4cCI6NDg1MzM3NjY0Mn0.cA7ke_s6FwqMM6nAh7cO6QYXljZK2f81e56GndXIb8k'
           },
           success: function(response) {
             var formattedJSON = JSON.stringify(response, null, 2);

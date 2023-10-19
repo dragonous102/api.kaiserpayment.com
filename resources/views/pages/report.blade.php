@@ -2,9 +2,8 @@
 
 @section('content')
   <style>
-    td{
-      padding-left: 0 !important;
-      padding-right: 0 !important;
+    .dataTables_paginate{
+      margin-top: 20px !important;
     }
   </style>
   <div class="container">
@@ -68,18 +67,19 @@
               </div>
             </form>
             <hr>
-            <table class="table">
+            <table class="table" id="reportTable">
               <thead>
               <tr>
                 <th>No</th>
                 <th>Order No</th>
                 <th>Name</th>
-                <th>Email Address</th>
-                <th>Date</th>
+                <th style="width: 200px;">Email Address</th>
+                <th style="width: 150px;">Date</th>
                 <th>Amount</th>
-                <th>Fee</th>
-                <th>Product Name</th>
-                <th>Card Holder Name</th>
+                <th style="width: 70px;">Fee Amt</th>
+                <th style="width: 50px;">Fee %</th>
+                <th style="width: 200px;">Product Name</th>
+                <th style="width: 150px;">Card Holder Name</th>
                 <th>Status</th>
                 <th>Domain</th>
               </tr>
@@ -100,6 +100,25 @@
   </div>
 
   <script src="{{ asset('js/http_code.jquery.com_jquery-3.6.0.js', config('env') == 'local') }}"></script>
+  <!-- Include DataTables CSS and JavaScript files -->
+  <!-- Include DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+
+  <!-- Include DataTables FixedColumns CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
+
+  <!-- Include DataTables JavaScript -->
+  <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+
+  <!-- Include Clipboard JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
+
+  <!-- Include Date and time format JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+  <!-- Include DataTables FixedColumns JavaScript -->
+  <script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
 
   <script>
     function convertDateString( dateString ){
@@ -116,70 +135,184 @@
     }
 
     $(document).ready(function(){
-      $('.get-report').click(function (){
-        let dataToSend = {
-          orderNo: $('#orderNo').val(),
-          fromDate: $('#fromDate').val(),
-          toDate: $('#toDate').val(),
-          email: $('#email').val(),
-          name: $('#name').val(),
-          status: $('#status').val(),
-        };
-
-        $.ajax({
+      // Initialize DataTable
+      let dataTable = $('#reportTable').DataTable({
+        searching: false, // Hide the search menu
+        processing: true,
+        serverSide: true,
+        fixedColumns: {
+          left: 2,
+          right: 2
+        },
+        scrollCollapse: true,
+        scrollX: true,
+        columnDefs: [
+          { targets: '_all', orderable: false } // Disable sorting for all columns
+        ],
+        ajax: {
           url: window.location.origin + '/api/getReport',
-          type: 'POST',
-          data: JSON.stringify(dataToSend),
-          headers: {
-            'Authorization': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjEiLCJuYW1lIjoiS0FJU0VSIiwiZG9tYWluIjoiQVBJLktBSVNFUlBBWU1FTlQuQ09NIiwiZmVlIjoiNyIsImV4cCI6NDg0OTU3OTQxNH0.Tqlf_hxqvYu9u-Qw4pUMdHV507CZm48HUnVvfxC8DsQ'
+          data: function (d) {
+            d.orderNo = $('#orderNo').val();
+            d.fromDate = $('#fromDate').val();
+            d.toDate = $('#toDate').val();
+            d.email = $('#email').val();
+            d.name = $('#name').val();
+            d.status = $('#status').val();
+            d.pageNo = (parseInt(d.start / d.length) + 1); // Calculate page number
+            d.pageSize = d.length;
           },
-          contentType: 'application/json',
-          success: function(response) {
+          dataSrc: function (response) {
             var formattedJSON = JSON.stringify(response, null, 2);
+            $('.error-box').hide();
+            $(".api-response").removeClass('text-danger').removeClass('text-success').addClass('text-success');
             $(".api-response").html('<pre>' + formattedJSON + '</pre>');
 
-            if( response['code'] !== 200 ){
-              $('.error-box').show();
-              $('.error-box .card-header').html(response['message']);
-              $('.error-box .card-body').html(response['body']);
-              $(".api-response").removeClass('text-danger').removeClass('text-success').addClass('text-danger');
-            }
-            else{
-              $('.error-box').hide();
-              $(".api-response").removeClass('text-danger').removeClass('text-success').addClass('text-success');
+            // Map the expected keys
+            response.recordsTotal = response.body.total_data_size;
+            response.recordsFiltered = response.body.searched_data_size;
 
-              var html = '';
-              var data = response['body'];
-              for( var i = 0; i < data.length; i++){
-                html += '<tr>\
-              <td>'+ (i+1) +'</td>\
-              <td>'+ (data[i].orderNo == null ? '' : data[i].orderNo) +'</td>\
-              <td>'+ (data[i].name == null ? '' : data[i].name) +'</td>\
-              <td>'+ (data[i].email_address == null ? '' : data[i].email_address) +'</td>\
-              <td>'+ (data[i].created_at == null ? '' : convertDateString(data[i].created_at)) +'</td>\
-              <td>'+ (data[i].amount == null ? '' : data[i].amount) +'</td>\
-              <td>'+ ((data[i].fee == null || data[i].fee === 0) ? '' : data[i].fee) +'</td>\
-              <td>'+ ((data[i].product_name == null || data[i].product_name === 0) ? '' : data[i].product_name) +'</td>\
-              <td>'+ ((data[i].card_holder_name == null || data[i].card_holder_name === 0) ? '' : data[i].card_holder_name) +'</td>\
-              <td>'+ (data[i].status == null ? '' : data[i].status) +'</td>\
-              <td>'+ (data[i].domain == null ? '' : data[i].domain) +'</td>\
-              </tr>';
-              }
-              $('.my-tbody').html(html);
+            return response.body.data;
+          },
+          beforeSend: function (xhr) {
+            xhr.setRequestHeader('Authorization', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjEiLCJuYW1lIjoiS0FJU0VSIiwiZG9tYWluIjoiQVBJLktBSVNFUlBBWU1FTlQuQ09NIiwiZmVlIjoiOCIsImV4cCI6NDg1MzM3NjY0Mn0.cA7ke_s6FwqMM6nAh7cO6QYXljZK2f81e56GndXIb8k');
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            $('.error-box').show();
+            $('.error-box .card-header').html("Error");
+            $('.error-box .card-body').html(jqXHR.responseJSON.message);
+            $(".api-response").removeClass('text-danger').removeClass('text-success').addClass('text-danger');
+            return null;
+          }
+        },
+        columns: [
+          {
+            data: null,
+            render: function (data, type, row, meta) {
+              return meta.row + 1 + (meta.settings._iDisplayStart || 0);
             }
           },
-          error: function(xhr, textStatus, errorThrown) {
-            // Handle errors here
-            var formattedJSON = JSON.stringify(xhr.responseJSON, null, 2);
-            $(".api-response").html('<pre>' + formattedJSON + '</pre>');
-            $(".api-response").removeClass('text-danger').removeClass('text-success').addClass('text-danger');
+          {
+            data: 'orderNo',
+            render: function (data, type, row, meta) {
+              if (type === 'display') {
+                return data === null ? '' : data;
+              }
+              return data;
+            },
+          },
+          {
+            data: 'name',
+            render: function (data, type, row, meta) {
+              if (type === 'display') {
+                return data === null ? '' : data;
+              }
+              return data;
+            },
+          },
+          {
+            data: 'email_address',
+            render: function (data, type, row, meta) {
+              if (type === 'display') {
+                return data === null ? '' : data;
+              }
+              return data;
+            },
+          },
+          {
+            data: 'created_at',
+            render: function (data, type, row, meta) {
+              if (type === 'display') {
+                return data === null ? '' : convertDateString(data);
+              }
+              return data;
+            },
+          },
+          {
+            data: 'amount',
+            render: function (data, type, row, meta) {
+              if (type === 'display') {
+                return (data === null || data*1 === 0) ? '' : data;
+              }
+              return data;
+            },
+          },
+          {
+            data: 'fee',
+            render: function (data, type, row, meta) {
+              if (type === 'display') {
+                return (data === null || data*1 === 0) ? '' : data;
+              }
+              return data;
+            },
+          },
+          {
+            data: 'fee_percent',
+            render: function (data, type, row, meta) {
+              if (type === 'display') {
+                return (data === null || data*1 === 0) ? '' : data;
+              }
+              return data;
+            },
+          },
+          {
+            data: 'product_name',
+            render: function (data, type, row, meta) {
+              if (type === 'display') {
+                return data === null ? '' : data;
+              }
+              return data;
+            },
+          },
+          {
+            data: 'card_holder_name',
+            render: function (data, type, row, meta) {
+              if (type === 'display') {
+                return data === null ? '' : data;
+              }
+              return data;
+            },
+          },
+          {
+            data: 'status',
+            render: function (data, type, row, meta) {
+              if (type === 'display') {
+                return data === null ? '' : data;
+              }
+              return data;
+            },
+          },
+          {
+            data: 'domain',
+            render: function (data, type, row, meta) {
+              if (type === 'display') {
+                return data === null ? '' : data;
+              }
+              return data;
+            },
+          },
+        ],
+        // Use the new key names for total records and filtered records
+        recordsTotal: 'total_data_size',
+        recordsFiltered: 'searched_data_size',
+      });
 
-            $('.error-box').show();
-            $('.error-box .card-header').html(xhr.responseJSON.message);
-            $('.error-box .card-body').html(xhr.responseJSON.body);
-          }
-        });
-      })
+      // Function to trigger DataTable search
+      function searchReport() {
+        dataTable.ajax.reload();
+      }
+
+      // Attach the searchReport function to the button click event
+      $('.get-report').on('click', function () {
+        searchReport();
+      });
+
+      // Error handler
+      dataTable.on('error.dt', function(e, settings, techNote, message) {
+        $('.error-box').show();
+        $('.error-box .card-header').html(message);
+        $('.error-box .card-body').html(message);
+        $(".api-response").removeClass('text-danger').removeClass('text-success').addClass('text-danger');
+      });
     });
   </script>
 @endsection

@@ -105,6 +105,7 @@ class PaymentController extends Controller
               $transaction->orderNo = $respData['data']['paymentIncompleteResult']['orderNo'];
               $transaction->amount = $amount;
               $transaction->fee = $amount * $apiKeyPartner['fee'] / 100;
+              $transaction->fee_percent = $apiKeyPartner['fee'];
               $transaction->product_name = $productName;
               $transaction->status = $respData['data']['paymentIncompleteResult']['paymentStatusInfo']['paymentStatus'];
               $transaction->partner_domain = $apiKeyPartner['domain'];
@@ -179,12 +180,99 @@ class PaymentController extends Controller
           $message = "Report Error 4: Invalid authorization API key. This request to access the Kaiser API was declined.";
         }
         else{
-          // Check uncompleted transactions and update local DB with JDB transactions
-          $uncompletedOrderNo = [];
-          $transactions = Transaction::whereNull('card_holder_name')->get();
 
-          foreach( $transactions as $transaction )
-            $uncompletedOrderNo[] = $transaction->orderNo;
+          // Extract search parameters from the request
+          $orderNo = $request->input('orderNo');
+          $name = $request->input('name');
+          $fromDate = $request->input('fromDate');
+          $toDate = $request->input('toDate');
+          $email = $request->input('email');
+          $productName = $request->input('productName');
+          $status = $request->input('status');
+          $pageSize = $request->input('pageSize', 10); // Default to 10 results per page
+          $pageNo = $request->input('pageNo', 1); // Default to page 1
+
+          // Build the query for searching orders
+          $query = Transaction::query()
+            ->leftJoin('partners', 'transactions.partner_id', '=', 'partners.id')
+            ->select(
+              'transactions.orderNo',
+              'transactions.partner_id',
+              'transactions.email_address',
+              'transactions.card_holder_name',
+              DB::raw('CAST(transactions.amount AS CHAR) as amount'),
+              DB::raw('CAST(transactions.fee AS CHAR) as fee'),
+              DB::raw('CAST(transactions.fee_percent AS CHAR) as fee_percent'),
+              'transactions.product_name',
+              'transactions.status',
+              'transactions.partner_domain',
+              'transactions.created_at',
+              'transactions.updated_at',
+              'transactions.deleted_at',
+              'partners.name as name',
+              'partners.domain')
+            ->orderByDesc('transactions.created_at');
+
+          // Kaiser can get all transactions
+          if( $apiKeyPartner['domain'] != $this->KAISER_DOMAIN ){
+            $query->where('partners.id', '=', $apiKeyPartner['id']);
+          }
+
+          if ( $orderNo ) {
+            $query->where('transactions.orderNo', 'like', '%' . $orderNo . '%');
+          }
+
+          if ( $name ) {
+            $query->where('partners.name', 'LIKE', '%' . $name . '%');
+          }
+
+          if ( $fromDate ) {
+            $query->where('transactions.updated_at', '>=', $fromDate . ' 00:00:00');
+          }
+
+          if ( $toDate ) {
+            $query->where('transactions.updated_at', '<=', $toDate . ' 23:59:59');
+          }
+
+          if ( $email ) {
+            $query->where('transactions.email_address', 'like', '%' . $email . '%');
+          }
+
+          if ( $productName ) {
+            $query->where('transactions.product_name', 'like', '%' . $productName . '%');
+          }
+
+          if ( $status ) {
+            $query->where('transactions.status', '=', $status);
+          }
+
+          // Calculate total result count and page count
+          if( $pageSize == 0 )
+            $pageSize = 10;
+          $totalResults = $query->count();
+          $totalPages = ceil($totalResults / $pageSize);
+          if( $dbPartner->domain == $this->KAISER_DOMAIN ){
+            $totalRecords = Transaction::count();
+          }
+          else{
+            $partnerId = $dbPartner->id;
+            $totalRecords = Transaction::whereHas('partner', function ($query) use ($partnerId) {
+              $query->where('id', $partnerId);
+            })->count();
+          }
+
+          // Apply pagination
+          $query->offset(($pageNo - 1) * $pageSize)
+            ->limit($pageSize);
+
+          // Fetch the results
+          $results = $query->get();
+          //echo $query->toSql();
+
+          // update database from JDB
+          $uncompletedOrderNo = [];
+          foreach( $results as $result )
+            $uncompletedOrderNo[] = $result->orderNo;
 
           $inquiry = new \Inquiry();
           $response = $inquiry->ExecuteWithOrderNos($uncompletedOrderNo);
@@ -222,70 +310,26 @@ class PaymentController extends Controller
             }
           }
 
-          // search transactions in local DB
-          $query = Transaction::query();
-
-          // Kaiser can get all transactions
-          if( $apiKeyPartner['domain'] != $this->KAISER_DOMAIN ){
-            $query->where('partners.id', '=', $apiKeyPartner['id']);
-          }
-
-          if (isset($request->orderNo) && $request->orderNo != null) {
-            $query->where('transactions.orderNo', 'like', '%' . $request->orderNo . '%');
-          }
-
-          if (isset($request->fromDate) && $request->fromDate != null ) {
-            $query->where('transactions.updated_at', '>=', $request->fromDate . ' 00:00:00');
-          }
-
-          if (isset($request->toDate) && $request->toDate != null ) {
-            $query->where('transactions.updated_at', '<=', $request->toDate . ' 23:59:59');
-          }
-
-          if (isset($request->email) && $request->email != null ) {
-            $query->where('transactions.email_address', 'like', '%' . $request->email . '%');
-          }
-
-          if (isset($request->name) && $request->name != null ) {
-            $query->where('partners.name', 'like', '%' . $request->name . '%');
-          }
-
-          if (isset($request->productName) && $request->productName != null ) {
-            $query->where('transactions.product_name', 'like', '%' . $request->productName . '%');
-          }
-
-          if (isset($request->status) && $request->status != null ) {
-            $query->where('transactions.status', '=', $request->status);
-          }
-
-          if (isset($request->maxResults) && $request->maxResults != null ) {
-            $query->limit($request->maxResults);
-          }
-
-          $query->join('partners', 'transactions.partner_id', '=', 'partners.id')
-            ->select(
-              'transactions.*',
-              'partners.name as name',
-              'partners.domain'
-            );
-          $query->orderBy('transactions.created_at', 'desc');
-          //echo $query->toSql();
+          // re-fetch data from database
           $results = $query->get();
 
           foreach ($results as $result){
             unset($result->partner_id);
             unset($result->deleted_at);
             unset($result->partner_domain);
-
             $result->status = $this->STATUS_LIST[$result->status];
             $result->created_at = DateUtil::convertToUTC($result->created_at);
             $result->updated_at = DateUtil::convertToUTC($result->updated_at);
-            $result->fee = $result->fee."";
           }
 
           $success = true;
           $message = "report data";
-          $body = $results;
+          $body['data'] = $results;
+          $body['page_count'] = $totalPages;
+          $body['page_no'] = $pageNo == null ? 1 : $pageNo;
+          $body['page_size'] = $pageSize;
+          $body['total_data_size'] = $totalRecords;
+          $body['searched_data_size'] = $totalResults;
         }
       }
       else {

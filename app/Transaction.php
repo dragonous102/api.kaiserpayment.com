@@ -19,6 +19,7 @@ class Transaction extends Model
     'orderNo',
     'amount',
     'fee',
+    'fee_percent',
     'product_name',
     'status',
     'partner_domain',

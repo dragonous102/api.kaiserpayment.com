@@ -18,7 +18,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 Route::post('/prepayment', 'PaymentController@prePayment')->name('prePayment');
-Route::post('/getReport', 'PaymentController@getReport')->name('getReport');
+Route::get('/getReport', 'PaymentController@getReport')->name('getReport');
 Route::post('/getCryptoPaymentAddress', 'FireBlocksController@getCryptoPaymentAddress')->name('getCryptoPaymentAddress');
 Route::get('/getCryptoPaymentReport', 'FireBlocksController@getCryptoPaymentReport')->name('getCryptoPaymentReport');
 Route::post('/webhook', 'FireBlocksController@webhook');
