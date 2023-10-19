@@ -177,11 +177,11 @@ class Payment extends ActionRequest
    * @throws GuzzleException
    * @throws Exception
    */
-  public function ExecuteJose($amount = 0, $productName = "", $host = ""): string
+  public function ExecuteJose($amount = 0, $productName = "", $host = "", $fee = 0): string
   {
     // Prepare basic information
     $amount = ceil($amount * 100) / 100;
-    $fee = $amount * 8 / 100;
+    $feeAmount = $amount * $fee / 100;
     $amount_text = ceil($amount * 100);
     $len = strlen((string)$amount_text);
     for ($i=0; $i < (12 - $len); $i++) {
@@ -224,7 +224,7 @@ class Payment extends ActionRequest
       "customFieldList" => [
         [
           "fieldName" => "fee",
-          "fieldValue" => $fee
+          "fieldValue" => $feeAmount
         ],
         [
           "fieldName" => "partner",

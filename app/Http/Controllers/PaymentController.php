@@ -93,7 +93,7 @@ class PaymentController extends Controller
           }
           else{
             $payment = new \Payment();
-            $response = $payment->ExecuteJose($amount, $productName, $apiKeyPartner['domain']);
+            $response = $payment->ExecuteJose($amount, $productName, $apiKeyPartner['domain'], $apiKeyPartner['fee']);
             $respData = json_decode($response, true);
             if (is_array($respData) && isset($respData['data'])) {
 
