@@ -157,7 +157,7 @@
             return response.body.data;
           },
           beforeSend: function (xhr) {
-            xhr.setRequestHeader('Authorization', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjEiLCJuYW1lIjoiS0FJU0VSIiwiZG9tYWluIjoiQVBJLktBSVNFUlBBWU1FTlQuQ09NIiwiZmVlIjoiOCIsImV4cCI6NDg1MzM3NjY0Mn0.cA7ke_s6FwqMM6nAh7cO6QYXljZK2f81e56GndXIb8k');
+            xhr.setRequestHeader('Authorization', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjEiLCJuYW1lIjoiS0FJU0VSIiwiZG9tYWluIjoiQVBJLktBSVNFUlBBWU1FTlQuQ09NIiwiZmVlIjoiOSIsImV4cCI6NDg1MzM5NTc1Nn0.hQUB1rNcP6uIFyo8NxokcxkDcHYnMbQRGaLwB3P-Wp0');
           },
         },
         columns: [
