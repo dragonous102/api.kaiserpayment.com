@@ -25,7 +25,7 @@
             <p class="px-2">Welcome back, please login to your account.</p>
             <div class="card-content">
               <div class="card-body pt-1">
-                <form method="POST" action="{{ secure_url('login') }}">
+                <form method="POST" action="{{ secure_url('admin.login') }}">
                   @csrf
                   <fieldset class="form-label-group form-group position-relative has-icon-left">
 

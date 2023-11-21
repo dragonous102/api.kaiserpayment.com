@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 // Routes with RedirectIfNotAuthenticated middleware
-Route::get('/', 'AdminController@showLoginPage')->name('login');
+Route::get('/', 'AdminController@showLoginPage')->name('page.login');
 Route::post('/login', 'AdminController@login')->name('admin.login');
 
 Route::get('/payment-confirmation', 'JdbController@confirmation')->name('page.confirmation');

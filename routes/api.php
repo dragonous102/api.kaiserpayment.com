@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -14,9 +15,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
+Route::middleware('auth:api')->get('/user', [UserController::class, 'getUser']);
 Route::post('/prepayment', 'PaymentController@prePayment')->name('prePayment');
 Route::get('/getReport', 'PaymentController@getReport')->name('getReport');
 Route::post('/getCryptoPaymentAddress', 'FireBlocksController@getCryptoPaymentAddress')->name('getCryptoPaymentAddress');
