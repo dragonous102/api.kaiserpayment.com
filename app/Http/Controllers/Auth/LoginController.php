@@ -57,7 +57,7 @@ class LoginController extends Controller
      * Log the user out of the application.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|Response|\Illuminate\Routing\Redirector
      */
     public function logout(Request $request)
     {
@@ -65,6 +65,6 @@ class LoginController extends Controller
 
         $request->session()->invalidate();
 
-        return $this->loggedOut($request) ?: redirect('/login');
+        return $this->loggedOut($request) ?: redirect('/');
     }
 }

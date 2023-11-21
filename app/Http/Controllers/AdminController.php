@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\User;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
@@ -11,11 +11,13 @@ use Illuminate\Support\Facades\Auth;
 class AdminController extends Controller
 {
   public function showLoginPage(Request $request){
+    Log::info('Showing login page in AdminController');
     return view('pages.admin_login');
   }
 
   public function login(Request $request)
   {
+    Log::info('Inside login method'); // Add this line
     if( $request->input('name') != 'minamide@optlynx.com' ){
       return redirect()->route('page.login');
     }
@@ -23,9 +25,13 @@ class AdminController extends Controller
     $credentials = $request->only('name', 'password');
 
     if (Auth::attempt($credentials)) {
+      Log::info('Redirecting to page.home in AdminController');
+      Log::info('After existing logic'); // Add this line
       return redirect()->route('page.home');
     }
     else{
+      Log::info('Redirecting to page.login in AdminController');
+      Log::info('After existing logic'); // Add this line
       return redirect()->route('page.login');
     }
   }
