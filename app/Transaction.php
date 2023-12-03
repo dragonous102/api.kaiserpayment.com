@@ -23,6 +23,7 @@ class Transaction extends Model
     'product_name',
     'status',
     'partner_domain',
+    'service_type',
   ];
 
   // Define the relationship with the Partner model

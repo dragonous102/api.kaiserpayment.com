@@ -1,29 +1,28 @@
 <?php
 
+namespace App\includes\JDB_UAT\api;
+
+use App\includes\JDB_UAT\ActionRequest;
+use App\includes\JDB_UAT\SecurityData;
 use Carbon\Carbon;
-use GuzzleHttp\Exception\GuzzleException;
-// use Paco\PhpDemo\ActionRequest;
-// use Paco\PhpDemo\SecurityData;
-use App\includes\ActionRequest;
-use App\includes\SecurityData;
-class Settlement extends ActionRequest
+use Exception;
+
+
+class VoidRequest extends ActionRequest
 {
-    /**
-     * @throws GuzzleException
-     */
     public function Execute(): string
     {
         $officeId = "DEMOOFFICE";
-        $orderNo = "1643362945100"; //OrderNo can be Refund/Void one time
-        $productDescription = "Sample request for 1643362945100";
+        $orderNo = "1643362945102"; //OrderNo can be Refund/Void one time only
+        $productDescription = "Sample request for 1643362945102";
 
         $request = [
             "officeId" => $officeId,
             "orderNo" => $orderNo,
             "productDescription" => $productDescription,
-            "issuerApprovalCode" => "141857", // approvalCode of order place (Payment api) response
+            "issuerApprovalCode" => "140331", // approvalCode of order place (Payment api) response
             "actionBy" => "System",
-            "settlementAmount" => [
+            "voidAmount" => [
                 "amountText" => "000000100000",
                 "currencyCode" => "THB",
                 "decimalPlaces" => 2,
@@ -33,8 +32,7 @@ class Settlement extends ActionRequest
 
         $stringRequest = json_encode($request);
 
-        //third-party http client https://github.com/guzzle/guzzle
-        $response = $this->client->put('api/1.0/Settlement', [
+        $response = $this->client->post('api/1.0/Void', [
             'headers' => [
                 'Accept' => 'application/json',
                 'apiKey' => SecurityData::$AccessToken,
@@ -47,23 +45,22 @@ class Settlement extends ActionRequest
     }
 
     /**
-     * @throws GuzzleException
      * @throws Exception
      */
     public function ExecuteJose(): string
     {
         $now = Carbon::now();
         $officeId = "DEMOOFFICE";
-        $orderNo = "1643362945100";
-        $productDescription = "Sample request for 1643362945100";
+        $orderNo = "1643362945102"; //OrderNo can be Refund/Void one time only
+        $productDescription = "Sample request for 1643362945102";
 
         $request = [
             "officeId" => $officeId,
             "orderNo" => $orderNo,
             "productDescription" => $productDescription,
-            "issuerApprovalCode" => "141857", // approvalCode of order place (Payment api) response
+            "issuerApprovalCode" => "140331", // approvalCode of order place (Payment api) response
             "actionBy" => "System",
-            "settlementAmount" => [
+            "voidAmount" => [
                 "amountText" => "000000100000",
                 "currencyCode" => "THB",
                 "decimalPlaces" => 2,
@@ -87,8 +84,7 @@ class Settlement extends ActionRequest
 
         $body = $this->EncryptPayload($stringPayload, $signingKey, $encryptingKey);
 
-        //third-party http client https://github.com/guzzle/guzzle
-        $response = $this->client->put('api/1.0/Settlement', [
+        $response = $this->client->post('api/1.0/Void', [
             'headers' => [
                 'Accept' => 'application/jose',
                 'CompanyApiKey' => SecurityData::$AccessToken,
@@ -103,5 +99,4 @@ class Settlement extends ActionRequest
 
         return $this->DecryptToken($token, $decryptingKey, $signatureVerificationKey);
     }
-
 }

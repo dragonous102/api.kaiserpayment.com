@@ -1,8 +1,9 @@
 <?php
 
-namespace App\includes;
+namespace App\includes\JDB_PROD;
 
 // use Exception;
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
@@ -32,14 +33,13 @@ use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\JWSLoader;
 use Jose\Component\Signature\JWSTokenSupport;
 use Jose\Component\Signature\JWSVerifier;
-use Jose\Component\Signature\Serializer\CompactSerializer as JWSCompactSerializer;
 use Jose\Component\Signature\Serializer\JWSSerializerManager;
 use Jose\Easy\ContentEncryptionAlgorithmChecker;
 use Psr\Http\Message\RequestInterface;
 
 abstract class ActionRequest
 {
-    const PaymentEndpoint = "https://core.demo-paco.2c2p.com/";
+    const PaymentEndpoint = "https://core.paco.2c2p.com/";
 
     protected $client;
 

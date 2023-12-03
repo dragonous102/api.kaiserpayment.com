@@ -16,6 +16,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js"></script>
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+  <!-- constant js -->
+  <script src="{{ asset('js/constant.js', config('env') == 'local') }}"></script>
 </head>
 <body>
 <header class="text-center py-4">

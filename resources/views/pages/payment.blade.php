@@ -64,7 +64,7 @@
           data: JSON.stringify(dataToSend),
           contentType: 'application/json',
           headers: {
-            'Authorization': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjEiLCJuYW1lIjoiS0FJU0VSIiwiZG9tYWluIjoiQVBJLktBSVNFUlBBWU1FTlQuQ09NIiwiZmVlIjoiOSIsImV4cCI6NDg1MzM5NTc1Nn0.hQUB1rNcP6uIFyo8NxokcxkDcHYnMbQRGaLwB3P-Wp0'
+            'Authorization': API_KEY
           },
           success: function(response) {
             var formattedJSON = JSON.stringify(response, null, 2);
@@ -79,7 +79,6 @@
             else{
               $('.redirect-btn').attr('href', response['body']);
               $(".api-response").removeClass('text-danger').removeClass('text-success').addClass('text-success');
-              //window.location.href = response['body'];
             }
           },
           error: function(xhr, textStatus, errorThrown) {

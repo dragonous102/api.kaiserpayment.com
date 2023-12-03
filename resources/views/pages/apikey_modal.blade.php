@@ -1,43 +1,43 @@
 <!-- Admin Update Modal -->
 <div class="modal fade" id="updatePartnerModal" data-bs-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="updatePartnerLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
+  <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="updatePartnerLabel">Update Partner</h5>
+      <div class="modal-header bg-primary">
+        <h5 class="modal-title" id="updatePartnerLabel">Update Partner<span class="update-partner"></span></h5>
         <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" style="padding-left: 40px; padding-right: 40px;">
         <form class="row">
           <input type="hidden" id="modal_id">
           <div class="col-md-12">
             <div class="form-group row">
-              <label for="modal_name" class="col-sm-2 col-form-label">Name</label>
+              <label for="modal_name" class="col-sm-2 col-form-label text-right">Name</label>
               <div class="col-sm-10">
                 <input type="text" class="form-control" id="modal_name">
               </div>
             </div>
             <div class="form-group row">
-              <label for="modal_domain" class="col-sm-2 col-form-label">Domain</label>
+              <label for="modal_domain" class="col-sm-2 col-form-label text-right">Domain</label>
               <div class="col-sm-10">
                 <input type="text" class="form-control" id="modal_domain">
               </div>
             </div>
             <div class="form-group row">
-              <label for="modal_fee" class="col-sm-2 col-form-label">Fee</label>
+              <label for="modal_fee" class="col-sm-2 col-form-label text-right">Fee</label>
               <div class="col-sm-10">
                 <input type="text" class="form-control" id="modal_fee">
               </div>
             </div>
             <div class="form-group row">
-              <label for="modal_crypto_fee" class="col-sm-2 col-form-label">Crypto Fee</label>
+              <label for="modal_crypto_fee" class="col-sm-2 col-form-label text-right">Crypto Fee</label>
               <div class="col-sm-10">
                 <input type="text" class="form-control" id="modal_crypto_fee">
               </div>
             </div>
             <div class="form-group row">
-              <label for="modal_status" class="col-sm-2 col-form-label">Status</label>
+              <label for="modal_status" class="col-sm-2 col-form-label text-right">Status</label>
               <div class="col-sm-10">
                 <select class="form-control" id="modal_status">
                   <option value="1">Enable</option>
@@ -46,7 +46,16 @@
               </div>
             </div>
             <div class="form-group row">
-              <label for="modal_fee" class="col-sm-2 col-form-label">Api key</label>
+              <label for="modal_service_type" class="col-sm-2 col-form-label text-right">Service Type</label>
+              <div class="col-sm-10">
+                <select class="form-control" id="modal_service_type">
+                  <option value="UAT">UAT</option>
+                  <option value="PROD">PROD</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group row">
+              <label for="modal_api_key" class="col-sm-2 col-form-label text-right">Api key</label>
               <div class="col-sm-10">
                 <label type="text" class="form-control" id="modal_api_key" style="word-break: break-all"></label>
               </div>
@@ -68,7 +77,7 @@
           </div>
         </form>
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer" style="padding-left: 40px; padding-right: 40px;">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         <button type="button" class="btn btn-primary" onclick="updatePartner()">Save changes</button>
       </div>
@@ -89,6 +98,7 @@
       crypto_fee: $('#modal_crypto_fee').val(),
       fee: $('#modal_fee').val(),
       status: $('#modal_status').val(),
+      service_type: $('#modal_service_type').val()
     };
 
     $.ajax({
@@ -137,6 +147,23 @@
                 $(this).html('<span class="text-danger">\
                                   <i class="fas fa-ban"></i> Disabled\
                               </span>');
+              }
+            }
+            if( $(this).hasClass('service_type')){
+              if(data.service_type === 'UAT' ){
+                $(this).html('<span class="text-warning-emphasis">\
+                                  <i class="fas fa-user-circle large-icon"></i>\
+                              </span>&nbsp' + data.service_type);
+              }
+              else if(data.service_type === 'PROD' ){
+                $(this).html('<span class="text-success">\
+                                  <i class="fab fa-product-hunt large-icon"></i>\
+                              </span>&nbsp' + data.service_type);
+              }
+              else{
+                $(this).html('<span class="text-danger">\
+                                  <i class="fas fa-exclamation-triangle"></i>\
+                              </span>&nbsp' + data.service_type);
               }
             }
             if( $(this).hasClass('update_at'))

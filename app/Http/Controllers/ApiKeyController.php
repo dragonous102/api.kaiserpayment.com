@@ -12,7 +12,7 @@ class ApiKeyController extends Controller
   public function showDashboard(Request $request)
   {
     try {
-      $partners = Partner::orderBy('updated_at', 'desc')->get();
+      $partners = Partner::orderBy('created_at', 'desc')->get();
 
       foreach ($partners as $partner) {
         $api_key = ApiKey::getApiKeyFromDomain($partner->domain);
@@ -21,16 +21,16 @@ class ApiKeyController extends Controller
           $partner->api_key = 'MISSING';
         }
         else {
-          //echo $api_key.'<br>';
           $savedData = ApiKey::parseJwtToken($api_key);
           if( isset($savedData['error'])) {
             $partner->api_key = 'INVALID';
             continue;
           }
-          //echo json_encode($savedData);
+
           if (
             $savedData['id'] == $partner->id &&
             $savedData['name'] == $partner->name &&
+            $savedData['service_type'] == $partner->service_type &&
             $savedData['domain'] == $partner->domain &&
             $savedData['fee'] == $partner->fee) {
             $partner->api_key = $api_key;
@@ -59,6 +59,7 @@ class ApiKeyController extends Controller
       $fee = $request->input("fee");
       $crypto_fee = $request->input("crypto_fee");
       $status = $request->input("status");
+      $service_type = $request->input("service_type");
 
       // Check if a partner with the same name or domain already exists
       $existingPartner = Partner::where('name', $name)->orWhere('domain', $domain)->first();
@@ -66,7 +67,7 @@ class ApiKeyController extends Controller
       if ($existingPartner) {
         $code = 400;
         $message = "A partner with the same name or domain already exists.";
-      } elseif (empty($name) || empty($domain) || empty($fee) || empty($crypto_fee) || !is_numeric($fee) || $fee < 0 || empty($status)) {
+      } elseif (empty($name) || empty($domain) || empty($fee) || empty($crypto_fee) || !is_numeric($fee) || $fee < 0 || empty($status) || empty($service_type)) {
         $code = 400;
         $message = "Invalid input data. Please provide valid values for all fields.";
       } else {
@@ -77,10 +78,11 @@ class ApiKeyController extends Controller
           'fee' => $fee,
           'crypto_fee' => $crypto_fee,
           'status' => $status,
+          'service_type' => $service_type
         ]);
 
         if ($newPartner) {
-          $message = 'API KEY: '.ApiKey::generateJwtToken($newPartner->id, $name, $domain, $fee);
+          $message = 'API KEY: '.ApiKey::generateJwtToken($newPartner->id, $name, $domain, $fee, $service_type);
           $success = true;
           $body = $newPartner;
         } else {
@@ -151,9 +153,10 @@ class ApiKeyController extends Controller
       $fee = $request->input("fee");
       $crypto_fee = $request->input("crypto_fee");
       $status = $request->input("status");
+      $service_type = $request->input("service_type");
       $existingPartner = Partner::where('id', $id)->first();
 
-      if (empty($name) || empty($domain) || empty($fee) || empty($crypto_fee) || !is_numeric($fee) || $fee < 0 || !is_numeric($status)) {
+      if (empty($name) || empty($domain) || empty($fee) || empty($crypto_fee) || !is_numeric($fee) || $fee < 0 || !is_numeric($status) || empty($service_type)) {
         $code = 400;
         $message = "Invalid input data. Please provide valid values for all fields.";
       } else if ($existingPartner == null){
@@ -164,8 +167,9 @@ class ApiKeyController extends Controller
         if( $existingPartner->name == $name &&
           $existingPartner->domain == $domain &&
           $existingPartner->fee == $fee &&
-          $existingPartner->id == $id ){
-          if($existingPartner->status != $status || $existingPartner->crypto_fee != $crypto_fee){
+          $existingPartner->id == $id &&
+          $existingPartner->service_type == $service_type){
+          if($existingPartner->status != $status || $existingPartner->crypto_fee != $crypto_fee ){
             $existingPartner->status = $status;
             $existingPartner->crypto_fee = $crypto_fee;
             $existingPartner->save();
@@ -181,9 +185,10 @@ class ApiKeyController extends Controller
           $existingPartner->fee = $fee;
           $existingPartner->crypto_fee = $crypto_fee;
           $existingPartner->status = $status;
+          $existingPartner->service_type = $service_type;
 
           $existingPartner->save();
-          $existingPartner->api_key = ApiKey::generateJwtToken($id, $name, $domain, $fee);
+          $existingPartner->api_key = ApiKey::generateJwtToken($id, $name, $domain, $fee, $service_type);
 
           $success = true;
           $message = "Partner information updated successfully. Please remember to manually update the API_KEY in the environment file to ensure proper functionality.";
@@ -256,7 +261,8 @@ class ApiKeyController extends Controller
           if ($apiKeyPartner['id'] != $dbPartner->id ||
             $apiKeyPartner['name'] != $dbPartner->name ||
             $apiKeyPartner['domain'] != $dbPartner->domain ||
-            $apiKeyPartner['fee'] != $dbPartner->fee) {
+            $apiKeyPartner['fee'] != $dbPartner->fee ||
+            $apiKeyPartner['service_type'] != $dbPartner->service_type) {
             $message = "<p class='text-danger'> The information in the API KEY does not match the saved partner's information.</p><br>API KEY: <br>";
             $body = ['msg'=>"INVALID_API_KEY", 'api_key'=>$api_key];
           }
@@ -275,7 +281,7 @@ class ApiKeyController extends Controller
     }
     catch (\Exception $e) {
       $code = 500;
-      $message = "<p class='text-danger'>$e->getMessage()</p>";
+      $message = "<p class='text-danger'>".$e->getMessage()."</p>";
       $body = ['msg'=>"NO_API_KEY", 'api_key'=>''];
     }
 
@@ -297,8 +303,8 @@ class ApiKeyController extends Controller
     try {
       $success = true;
       Artisan::call('config:cache');
-      $output = Artisan::output();
-      $message = "The API KEY was applied to the Kaiser server successfully. Check the API KEY working status.";
+      $output1 = Artisan::output();
+      $message = "The API KEY was applied to the Kaiser server successfully. Check the API KEY working status. ".$output1;
     } catch (\Exception $e) {
       $code = 500;
       $success = false;

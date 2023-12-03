@@ -1,16 +1,18 @@
 <?php
 
+namespace App\includes\JDB_UAT\api;
+
+use App\includes\JDB_UAT\ActionRequest;
+use App\includes\JDB_UAT\SecurityData;
 use Carbon\Carbon;
-use GuzzleHttp\Exception\GuzzleException;
-// use Paco\PhpDemo\ActionRequest;
-// use Paco\PhpDemo\SecurityData;
-use App\includes\ActionRequest;
-use App\includes\SecurityData;
+use DateTime;
+use Exception;
+use Webpatser\Uuid\Uuid;
 
 class Inquiry extends ActionRequest
 {
   /**
-   * @throws GuzzleException
+   * @throws Exception
    */
   public function Execute(): string
   {
@@ -21,7 +23,7 @@ class Inquiry extends ActionRequest
 
     $request = [
       "apiRequest" => [
-        "requestMessageID" => $this->Guid(),
+        "requestMessageID" => Uuid::generate()->string,
         "requestDateTime" => $now->utc()->format('Y-m-d\TH:i:s.v\Z'),
         "language" => "en-US",
       ],
@@ -62,36 +64,34 @@ class Inquiry extends ActionRequest
   public function ExecuteWithParam($orderNo, $fromDate, $toDate, $status): string
   {
     // orderNo
-    if( $orderNo == null || strlen(trim($orderNo)) == 0 )
+    if ($orderNo == null || strlen(trim($orderNo)) == 0)
       $orderNo = null;
 
     // fromDate
-    if( $fromDate != null && strlen(trim($fromDate)) > 0 ){
+    if ($fromDate != null && strlen(trim($fromDate)) > 0) {
       $date = new DateTime($fromDate);
       $fromDate = $date->format('Y-m-d\TH:i:s');
-    }
-    else{
+    } else {
       $fromDate = null;
     }
 
     // toDate
-    if( $toDate != null && strlen(trim($toDate)) > 0 ){
+    if ($toDate != null && strlen(trim($toDate)) > 0) {
       $date = new DateTime($toDate);
-      $toDate = $date->format('Y-m-d\T').'23:59:59';
-    }
-    else{
+      $toDate = $date->format('Y-m-d\T') . '23:59:59';
+    } else {
       $toDate = null;
     }
 
     // status
-    if( $status == null || strlen(trim($status)) == 0 )
+    if ($status == null || strlen(trim($status)) == 0)
       $status = null;
 
     $now = Carbon::now();
 
     $request = [
       "apiRequest" => [
-        "requestMessageID" => $this->Guid(),
+        "requestMessageID" => Uuid::generate()->string,
         "requestDateTime" => $now->utc()->format('Y-m-d\TH:i:s.v\Z'),
         "language" => "en-US",
       ],
@@ -102,13 +102,13 @@ class Inquiry extends ActionRequest
       ],
     ];
 
-    if( $orderNo != null )
-        $request["advSearchParams"]["orderNo"] = [$orderNo];
-    if( $fromDate != null )
+    if ($orderNo != null)
+      $request["advSearchParams"]["orderNo"] = [$orderNo];
+    if ($fromDate != null)
       $request["advSearchParams"]["fromDate"] = $fromDate;
-    if( $toDate != null )
+    if ($toDate != null)
       $request["advSearchParams"]["toDate"] = $toDate;
-    if( $status != null )
+    if ($status != null)
       $request["advSearchParams"]["paymentStatus"] = [$status];
 
     $stringRequest = json_encode($request);
@@ -128,7 +128,6 @@ class Inquiry extends ActionRequest
   }
 
   /**
-   * @throws GuzzleException
    * @throws Exception
    */
   public function ExecuteJose(): string
@@ -140,7 +139,7 @@ class Inquiry extends ActionRequest
 
     $request = [
       "apiRequest" => [
-        "requestMessageID" => $this->Guid(),
+        "requestMessageID" => Uuid::generate()->string,
         "requestDateTime" => $now->utc()->format('Y-m-d\TH:i:s.v\Z'),
         "language" => "en-US",
       ],
@@ -193,16 +192,19 @@ class Inquiry extends ActionRequest
     return $this->DecryptToken($token, $decryptingKey, $signatureVerificationKey);
   }
 
-  public function ExecuteWithOrderNos(array $uncompletedOrderNo)
+  /**
+   * @throws Exception
+   */
+  public function ExecuteWithOrderNos(array $uncompletedOrderNo): ?string
   {
-    if( count($uncompletedOrderNo) == 0 )
+    if (count($uncompletedOrderNo) == 0)
       return null;
 
     $now = Carbon::now();
 
     $request = [
       "apiRequest" => [
-        "requestMessageID" => $this->Guid(),
+        "requestMessageID" => Uuid::generate()->string,
         "requestDateTime" => $now->utc()->format('Y-m-d\TH:i:s.v\Z'),
         "language" => "en-US",
       ],
@@ -210,13 +212,11 @@ class Inquiry extends ActionRequest
         "officeId" => [
           "000002105010090"
         ],
+        "orderNo" => $uncompletedOrderNo,
       ],
     ];
 
-    $request["advSearchParams"]["orderNo"] = $uncompletedOrderNo;
     $stringRequest = json_encode($request);
-
-    //return $stringRequest;
 
     $response = $this->client->post('api/1.0/Inquiry/transactionList', [
       'headers' => [

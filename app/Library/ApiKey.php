@@ -6,7 +6,7 @@ use Firebase\JWT\JWT;
 
 class ApiKey
 {
-  public static function generateJwtToken($id, $name, $domain, $fee): string
+  public static function generateJwtToken($id, $name, $domain, $fee, $service_type): string
   {
     // Define your secret key (replace with your actual secret key)
     $secretKey = config('api_keys.JWT_SECRET');
@@ -17,6 +17,7 @@ class ApiKey
       'name' => $name,
       'domain' => $domain,
       'fee' => $fee,
+      'service_type' => $service_type,
       'exp' => strtotime('+100 years'),
     ];
 
@@ -33,8 +34,8 @@ class ApiKey
       $result['id'] = $decoded->id;
       $result['name'] = $decoded->name;
       $result['domain'] = $decoded->domain;
-      /*$result['crypto_fee'] = $decoded->crypto_fee;*/
       $result['fee'] = $decoded->fee;
+      $result['service_type'] = $decoded->service_type ?? null;
     } catch (Exception $e) {
       $result['error'] = $e->getMessage();
     }
@@ -61,7 +62,7 @@ class ApiKey
       return 'UN_REGISTERED_API_KEY';
     elseif ($apiKeyPartner['id'] != $dbPartner->id ||
       $apiKeyPartner['name'] != $dbPartner->name ||
-      /*$apiKeyPartner['crypto_fee'] != $dbPartner->crypto_fee ||*/
+      $apiKeyPartner['service_type'] != $dbPartner->service_type ||
       $apiKeyPartner['domain'] != $dbPartner->domain ||
       $apiKeyPartner['fee'] != $dbPartner->fee)
       return 'NOT_MATCHED_API_KEY';

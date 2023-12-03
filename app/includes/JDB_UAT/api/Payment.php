@@ -1,29 +1,30 @@
 <?php
 
+namespace App\includes\JDB_UAT\api;
+
+use App\includes\JDB_UAT\ActionRequest;
+use App\includes\JDB_UAT\SecurityData;
 use Carbon\Carbon;
-use GuzzleHttp\Exception\GuzzleException;
+use Exception;
+use Jose\Component\Checker\InvalidClaimException;
+use Jose\Component\Checker\MissingMandatoryClaimException;
 use Webpatser\Uuid\Uuid;
-use App\includes\ActionRequest;
-use App\includes\SecurityData;
 
 class Payment extends ActionRequest
 {
   /**
    * @throws Exception
    */
-  /**
-   * @throws GuzzleException
-   */
-  public function Execute($amount = 0 ): string
+  public function Execute($amount = 0): string
   {
     $crypto_amount = $amount * 0.94;
     $crypto_amount = bcdiv($crypto_amount, 1, 6);
     $amount = ceil($amount * 100) / 100;
     $amount_text = ceil($amount * 100);
     $len = strlen((string)$amount_text);
-    for ($i=0; $i < (12 - $len); $i++) {
+    for ($i = 0; $i < (12 - $len); $i++) {
       # code...
-      $amount_text = "0".$amount_text;
+      $amount_text = "0" . $amount_text;
 
     }
     $now = Carbon::now();
@@ -37,7 +38,7 @@ class Payment extends ActionRequest
       ],
       "officeId" => "000002105010108",
       "orderNo" => $orderNo,
-      "productDescription" => "For buying {$crypto_amount} USDT",
+      "productDescription" => "For buying $crypto_amount USDT",
       "paymentType" => "CC",
       "paymentCategory" => "ECOM",
       "storeCardDetails" => [
@@ -58,10 +59,10 @@ class Payment extends ActionRequest
         "amount" => $amount
       ],
       "notificationURLs" => [
-        "confirmationURL" => "{$app_url}/payment-confirmation",
-        "failedURL" => "{$app_url}/payment-failed",
-        "cancellationURL" => "{$app_url}/payment-cancellation",
-        "backendURL" => "{$app_url}/payment-backend"
+        "confirmationURL" => "$app_url/payment-confirmation",
+        "failedURL" => "$app_url/payment-failed",
+        "cancellationURL" => "$app_url/payment-cancellation",
+        "backendURL" => "$app_url/payment-backend"
       ],
 
       "customFieldList" => [
@@ -72,7 +73,6 @@ class Payment extends ActionRequest
       ]
     ];
     $stringRequest = json_encode($request);
-    //third-party http client https://github.com/guzzle/guzzle
     $response = $this->client->post("api/1.0/Payment/prePaymentUI", [
       "headers" => [
         "Accept" => "application/json",
@@ -84,6 +84,10 @@ class Payment extends ActionRequest
 
     return $response->getBody()->getContents();
   }
+
+  /**
+   * @throws Exception
+   */
   public function ExecuteNonUI($amount): string
   {
     $now = Carbon::now();
@@ -124,10 +128,10 @@ class Payment extends ActionRequest
         "amount" => $amount
       ],
       "notificationURLs" => [
-        "confirmationURL" => "{$app_url}/payment-confirmation",
-        "failedURL" => "{$app_url}/payment-failed",
-        "cancellationURL" => "{$app_url}/payment-cancellation",
-        "backendURL" => "{$app_url}/payment-backend"
+        "confirmationURL" => "$app_url/payment-confirmation",
+        "failedURL" => "$app_url/payment-failed",
+        "cancellationURL" => "$app_url/payment-cancellation",
+        "backendURL" => "$app_url/payment-backend"
       ],
       "deviceDetails" => [
         "browserIp" => "1.0.0.1",
@@ -160,7 +164,6 @@ class Payment extends ActionRequest
 
     $stringRequest = json_encode($request);
 
-    //third-party http client https://github.com/guzzle/guzzle
     $response = $this->client->post("api/1.0/Payment/nonUI", [
       "headers" => [
         "Accept" => "application/json",
@@ -174,7 +177,6 @@ class Payment extends ActionRequest
   }
 
   /**
-   * @throws GuzzleException
    * @throws Exception
    */
   public function ExecuteJose($amount = 0, $productName = "", $host = "", $feePercent = 0): string
@@ -184,17 +186,17 @@ class Payment extends ActionRequest
     $feeAmount = $amount * $feePercent / 100;
     $amount_text = ceil($amount * 100);
     $len = strlen((string)$amount_text);
-    for ($i=0; $i < (12 - $len); $i++) {
-      $amount_text = "0".$amount_text;
+    for ($i = 0; $i < (12 - $len); $i++) {
+      $amount_text = "0" . $amount_text;
     }
     $now = Carbon::now();
     $orderNo = $now->getPreciseTimestamp(3);
 
     // Prepare urls
-    if( $host == "localhost" )
+    if ($host == "localhost")
       $baseUrl = "http://localhost:8000";
     else
-      $baseUrl = "https://".$host;
+      $baseUrl = "https://" . $host;
 
     $request = [
       "apiRequest" => [
@@ -216,10 +218,10 @@ class Payment extends ActionRequest
         "amount" => $amount
       ],
       "notificationURLs" => [
-        "confirmationURL" => "{$baseUrl}/payment-confirmation",
-        "failedURL" => "{$baseUrl}/payment-failed",
-        "cancellationURL" => "{$baseUrl}/payment-cancellation",
-        "backendURL" => "{$baseUrl}/payment-backend"
+        "confirmationURL" => "$baseUrl/payment-confirmation",
+        "failedURL" => "$baseUrl/payment-failed",
+        "cancellationURL" => "$baseUrl/payment-cancellation",
+        "backendURL" => "$baseUrl/payment-backend"
       ],
       "customFieldList" => [
         [
@@ -237,16 +239,16 @@ class Payment extends ActionRequest
       ]
     ];
 
-    $url = ActionRequest::getPaymentEndpoint()."api/1.0/Payment/prePaymentUI";
+    $url = ActionRequest::getPaymentEndpoint() . "api/1.0/Payment/prePaymentUI";
     $headers = [
       "Content-Type: application/json; charset=utf-8",
-      "apiKey: ".SecurityData::$AccessToken,
+      "apiKey: " . SecurityData::$AccessToken,
     ];
     $body = json_encode($request);
     $options = [
       'http' => [
-        'header'  => implode("\r\n", $headers),
-        'method'  => 'POST',
+        'header' => implode("\r\n", $headers),
+        'method' => 'POST',
         'content' => $body,
       ],
     ];
@@ -254,6 +256,11 @@ class Payment extends ActionRequest
     return file_get_contents($url, false, $context);
   }
 
+  /**
+   * @throws MissingMandatoryClaimException
+   * @throws InvalidClaimException
+   * @throws Exception
+   */
   public function ExecuteJoseNonUI(): string
   {
     $now = Carbon::now();
@@ -294,10 +301,10 @@ class Payment extends ActionRequest
         "amount" => 1000
       ],
       "notificationURLs" => [
-        "confirmationURL" => "http://example-confirmation.com",
-        "failedURL" => "http://example-failed.com",
-        "cancellationURL" => "http://example-cancellation.com",
-        "backendURL" => "http://example-backend.com"
+        "confirmationURL" => "https://example-confirmation.com",
+        "failedURL" => "https://example-failed.com",
+        "cancellationURL" => "https://example-cancellation.com",
+        "backendURL" => "https://example-backend.com"
       ],
       "deviceDetails" => [
         "browserIp" => "1.0.0.1",
@@ -344,7 +351,6 @@ class Payment extends ActionRequest
 
     $body = $this->EncryptPayload($stringPayload, $signingKey, $encryptingKey);
 
-    //third-party http client https://github.com/guzzle/guzzle
     $response = $this->client->post("api/1.0/Payment/NonUi", [
       "headers" => [
         "Accept" => "application/jose",

@@ -1,6 +1,6 @@
 .modal-header .close {
   padding: 1rem;
-  margin: -1rem -1rem -1rem auto;
+  margin: -1.3rem -1rem -1rem auto;
 }
 button.close {
   padding: 0;
@@ -30,4 +30,28 @@ button.close {
 }
 .float-right{
   float: right;
+}
+td{
+  vertical-align: middle;
+}
+.large-icon{
+  font-size: x-large;
+}
+.text-right{
+  text-align: right;
+}
+.bg-primary{
+  color: white;
+  border: 2px solid #d1e3ff
+}
+.bg-success{
+  color: white;
+  border: 2px solid #d0ff82;
+}
+.update-partner, .update-partner-apikey{
+  margin-left: 20px;
+  font-size: larger;
+  text-shadow: 2px 2px 2px #0000003b;
+  font-weight: bold;
+  text-align: center;
 }

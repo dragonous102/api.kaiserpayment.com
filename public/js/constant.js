@@ -1,0 +1,2 @@
+// The api key of kaiser partner
+let API_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjYiLCJuYW1lIjoiQk9SSVMiLCJkb21haW4iOiJMT0NBTEhPU1QiLCJmZWUiOiIyIiwic2VydmljZV90eXBlIjoiVUFUIiwiZXhwIjo0ODU3MDk1OTc2fQ.FIyJRfbrUnJgnnFRRTPoUDzx6c2zfvv8b3BLknG6G88';

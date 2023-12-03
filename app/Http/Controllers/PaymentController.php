@@ -1,24 +1,27 @@
 <?php
 namespace App\Http\Controllers;
-use App\FbDepositOrderAddress;
 use App\Library\ApiKey;
 use App\Library\Constants;
 use App\Library\DateUtil;
 use App\Partner;
 use App\Transaction;
+use GuzzleHttp\Exception\GuzzleException;
 use http\Exception\RuntimeException;
 use Illuminate\Http\Request;
-use GuzzleHttp\Exception\GuzzleException;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Mockery\Exception;
 
-require_once (app_path().'/includes/api/Payment.php');
-require_once (app_path().'/includes/api/Inquiry.php');
-require_once (app_path().'/includes/api/VoidRequest.php');
-require_once (app_path().'/includes/api/Settlement.php');
-require_once (app_path().'/includes/api/Refund.php');
-require_once (app_path().'/includes/PHPGangsta/GoogleAuthenticator.php');
+require_once (app_path().'/includes/JDB_UAT/api/Payment.php');
+require_once (app_path().'/includes/JDB_UAT/api/Inquiry.php');
+require_once (app_path().'/includes/JDB_UAT/api/VoidRequest.php');
+require_once (app_path().'/includes/JDB_UAT/api/Settlement.php');
+require_once (app_path().'/includes/JDB_UAT/api/Refund.php');
+
+require_once (app_path().'/includes/JDB_PROD/api/Payment.php');
+require_once (app_path().'/includes/JDB_PROD/api/Inquiry.php');
+require_once (app_path().'/includes/JDB_PROD/api/VoidRequest.php');
+require_once (app_path().'/includes/JDB_PROD/api/Settlement.php');
+require_once (app_path().'/includes/JDB_PROD/api/Refund.php');
 
 
 class PaymentController extends Controller
@@ -92,33 +95,77 @@ class PaymentController extends Controller
             $body = "Product name is required.";
           }
           else{
-            $payment = new \Payment();
-            $response = $payment->ExecuteJose($amount, $productName, $apiKeyPartner['domain'], $apiKeyPartner['fee']);
-            $respData = json_decode($response, true);
-            if (is_array($respData) && isset($respData['data'])) {
+            $apiKeyPartner = ApiKey::parseJwtToken($apiKey);
+            $serviceType = $apiKeyPartner['service_type'];
+            if( $serviceType == Constants::$UAT || $serviceType == Constants::$PROD ){
 
-              // Save transaction
-              $transaction = new Transaction();
-              $transaction->partner_id = $apiKeyPartner['id'];
-              $transaction->email_address = null;
-              $transaction->card_holder_name = null;
-              $transaction->orderNo = $respData['data']['paymentIncompleteResult']['orderNo'];
-              $transaction->amount = $amount;
-              $transaction->fee = $amount * $apiKeyPartner['fee'] / 100;
-              $transaction->fee_percent = $apiKeyPartner['fee'];
-              $transaction->product_name = $productName;
-              $transaction->status = $respData['data']['paymentIncompleteResult']['paymentStatusInfo']['paymentStatus'];
-              $transaction->partner_domain = $apiKeyPartner['domain'];
-              $transaction->save();
+              if( $serviceType == Constants::$UAT ) {
+                $payment = new \App\includes\JDB_UAT\api\Payment();
+                $response = $payment->ExecuteJose($amount, $productName, $apiKeyPartner['domain'], $apiKeyPartner['fee']);
+                $respData = json_decode($response, true);
+                if (is_array($respData) && isset($respData['data'])) {
 
-              $success = true;
-              $body = $respData['data']['paymentPage']['paymentPageURL'];
-              $message = "paymentPageURL";
+                  // Save transaction
+                  $transaction = new Transaction();
+                  $transaction->partner_id = $apiKeyPartner['id'];
+                  $transaction->email_address = null;
+                  $transaction->card_holder_name = null;
+                  $transaction->orderNo = $respData['data']['paymentIncompleteResult']['orderNo'];
+                  $transaction->amount = $amount;
+                  $transaction->fee = $amount * $apiKeyPartner['fee'] / 100;
+                  $transaction->fee_percent = $apiKeyPartner['fee'];
+                  $transaction->product_name = $productName;
+                  $transaction->status = $respData['data']['paymentIncompleteResult']['paymentStatusInfo']['paymentStatus'];
+                  $transaction->partner_domain = $apiKeyPartner['domain'];
+                  $transaction->service_type = $apiKeyPartner['service_type'];
+                  $transaction->save();
+
+                  $success = true;
+                  $body = $respData['data']['paymentPage']['paymentPageURL'];
+                  $message = "paymentPageURL";
+                }
+                else {
+                  $code = 500;
+                  $message = "Payment Error 8";
+                  $body = $response;
+                }
+              }
+              else {
+                $payment = new \App\includes\JDB_PROD\api\Payment();
+                $response = $payment->ExecuteJose($amount, $productName, $apiKeyPartner['domain'], $apiKeyPartner['fee']);
+                $respData = json_decode($response, true);
+
+                if (is_array($respData) && isset($respData['response']) && isset($respData['response']['Data'])) {
+
+                  // Save transaction
+                  $transaction = new Transaction();
+                  $transaction->partner_id = $apiKeyPartner['id'];
+                  $transaction->email_address = null;
+                  $transaction->card_holder_name = null;
+                  $transaction->orderNo = $respData['response']['Data']['paymentIncompleteResult']['orderNo'];
+                  $transaction->amount = $amount;
+                  $transaction->fee = $amount * $apiKeyPartner['fee'] / 100;
+                  $transaction->fee_percent = $apiKeyPartner['fee'];
+                  $transaction->product_name = $productName;
+                  $transaction->status = $respData['response']['Data']['paymentIncompleteResult']['paymentStatusInfo']['PaymentStatus'];
+                  $transaction->partner_domain = $apiKeyPartner['domain'];
+                  $transaction->service_type = $apiKeyPartner['service_type'];
+                  $transaction->save();
+
+                  $success = true;
+                  $body = $respData['response']['Data']['paymentPage']['paymentPageURL'];
+                  $message = "paymentPageURL";
+                }
+                else {
+                  $code = 500;
+                  $message = "Payment Error 8";
+                  $body = $response;
+                }
+              }
             }
             else {
-              $code = 500;
-              $message = "Payment Error 8";
-              $body = $response;
+              $code = 400;
+              $message = "Invalid service type.";
             }
           }
         }
@@ -145,12 +192,25 @@ class PaymentController extends Controller
     ])->setStatusCode($code);
   }
 
-  public function getReport(Request $request): JsonResponse
+  public function getReport(Request $request)
   {
     $code = 200;
     $success = false;
     $timestamp = now()->toIso8601String();
     $body = [];
+
+    // Extract search parameters from the request
+    $orderNo = $request->input('orderNo');
+    $name = $request->input('name');
+    $fromDate = $request->input('fromDate');
+    $toDate = $request->input('toDate');
+    $email = $request->input('email');
+    $productName = $request->input('productName');
+    $status = $request->input('status');
+    $pageSize = $request->input('pageSize', 10); // Default to 10 results per page
+    $pageNo = $request->input('pageNo', 1); // Default to page 1
+    $totalRecords = 0;
+    $totalResults = 0;
 
     try {
       if ($request->hasHeader('Authorization')) {
@@ -180,18 +240,6 @@ class PaymentController extends Controller
           $message = "Report Error 4: Invalid authorization API key. This request to access the Kaiser API was declined.";
         }
         else{
-
-          // Extract search parameters from the request
-          $orderNo = $request->input('orderNo');
-          $name = $request->input('name');
-          $fromDate = $request->input('fromDate');
-          $toDate = $request->input('toDate');
-          $email = $request->input('email');
-          $productName = $request->input('productName');
-          $status = $request->input('status');
-          $pageSize = $request->input('pageSize', 10); // Default to 10 results per page
-          $pageNo = $request->input('pageNo', 1); // Default to page 1
-
           // Build the query for searching orders
           $query = Transaction::query()
             ->leftJoin('partners', 'transactions.partner_id', '=', 'partners.id')
@@ -212,6 +260,8 @@ class PaymentController extends Controller
               'partners.name as name',
               'partners.domain')
             ->orderByDesc('transactions.created_at');
+
+          $query->whereNotNull('transactions.service_type');
 
           // Kaiser can get all transactions
           if( $apiKeyPartner['domain'] != $this->KAISER_DOMAIN ){
@@ -249,16 +299,17 @@ class PaymentController extends Controller
           // Calculate total result count and page count
           if( $pageSize == 0 )
             $pageSize = 10;
+          //echo $query->toSql();
           $totalResults = $query->count();
           $totalPages = ceil($totalResults / $pageSize);
           if( $dbPartner->domain == $this->KAISER_DOMAIN ){
-            $totalRecords = Transaction::count();
+            $totalRecords = Transaction::whereNotNull('service_type')->count();
           }
           else{
             $partnerId = $dbPartner->id;
             $totalRecords = Transaction::whereHas('partner', function ($query) use ($partnerId) {
               $query->where('id', $partnerId);
-            })->count();
+            })->whereNotNull('service_type')->count();
           }
 
           // Apply pagination
@@ -267,45 +318,100 @@ class PaymentController extends Controller
 
           // Fetch the results
           $results = $query->get();
-          //echo $query->toSql();
 
           // update database from JDB
-          $uncompletedOrderNo = [];
-          foreach( $results as $result )
-            $uncompletedOrderNo[] = $result->orderNo;
+          $uncompletedOrderNo_UAT = [];
+          $uncompletedOrderNo_PROD = [];
+          foreach( $results as $result ) {
 
-          $inquiry = new \Inquiry();
-          $response = $inquiry->ExecuteWithOrderNos($uncompletedOrderNo);
-          if( $response != null ){
-            $respData = json_decode($response, true);
-            if (is_array($respData) && isset($respData['data'])) {
-              $jdbData = $respData['data'];
-              foreach ($jdbData as $item){
-                $updatedDate = (isset($item['paymentStatusInfo']) && isset($item['paymentStatusInfo']['lastUpdatedDttm'])) ? $item['paymentStatusInfo']['lastUpdatedDttm'] : null;
-                $paymentStatus = (isset($item['paymentStatusInfo']) && isset($item['paymentStatusInfo']['paymentStatus'])) ? $item['paymentStatusInfo']['paymentStatus'] : null;
-                $holderName = (isset($item['creditCardDetails']) && isset($item['creditCardDetails']['cardHolderName'])) ? $item['creditCardDetails']['cardHolderName'] : null;
-                $email = (isset($item['generalPayerDetails']) && isset($item['generalPayerDetails']['email'])) ? $item['generalPayerDetails']['email'] : null;
-                $orderNo = $item['orderNo'];
-                $amount = $item['transactionAmount']['amount'];
-                $transaction = Transaction::where('orderNo', $orderNo)->first();
-                if( $transaction == null )
-                  continue;
+            $dbPartner = Partner::find($result['partner_id']);
+            $serviceType = $dbPartner['service_type'];
+            if( $serviceType == 'UAT' )
+              $uncompletedOrderNo_UAT[] = $result->orderNo;
+            else if( $serviceType == 'PROD' )
+              $uncompletedOrderNo_PROD[] = $result->orderNo;
+          }
 
-                // check transaction is 1 day ago.
-                $stringDateTimestamp = strtotime($updatedDate);
-                $timeDifference = now()->timestamp - $stringDateTimestamp;
-                $daysDifference = $timeDifference / (60 * 60 * 24);
-                if ($daysDifference >= 1 && $holderName == null)
-                  $holderName = '';
-                if ($daysDifference >= 1 && $email == null)
-                  $email = '';
+          // get transaction from JDB UAT
+          if( count($uncompletedOrderNo_UAT) > 0 ){
+            $inquiry = new \App\includes\JDB_UAT\api\Inquiry();
+            $response = $inquiry->ExecuteWithOrderNos($uncompletedOrderNo_UAT);
+            if( $response != null ){
+              $respData = json_decode($response, true);
+              if (is_array($respData) && isset($respData['data'])) {
+                $jdbData = $respData['data'];
+                foreach ($jdbData as $item){
+                  $updatedDate = (isset($item['paymentStatusInfo']) && isset($item['paymentStatusInfo']['lastUpdatedDttm'])) ? $item['paymentStatusInfo']['lastUpdatedDttm'] : null;
+                  $paymentStatus = (isset($item['paymentStatusInfo']) && isset($item['paymentStatusInfo']['paymentStatus'])) ? $item['paymentStatusInfo']['paymentStatus'] : null;
+                  $holderName = (isset($item['creditCardDetails']) && isset($item['creditCardDetails']['cardHolderName'])) ? $item['creditCardDetails']['cardHolderName'] : null;
+                  $email = (isset($item['generalPayerDetails']) && isset($item['generalPayerDetails']['email'])) ? $item['generalPayerDetails']['email'] : null;
+                  $orderNo = $item['orderNo'];
+                  $amount = $item['transactionAmount']['amount'];
+                  $transaction = Transaction::where('orderNo', $orderNo)->first();
+                  if( $transaction == null )
+                    continue;
 
-                // update local transaction
-                $transaction->email_address = $email;
-                $transaction->card_holder_name = $holderName;
-                $transaction->status = $paymentStatus;
-                $transaction->amount = $amount;
-                $transaction->save();
+                  // check transaction is 1 day ago.
+                  $stringDateTimestamp = strtotime($updatedDate);
+                  $timeDifference = now()->timestamp - $stringDateTimestamp;
+                  $daysDifference = $timeDifference / (60 * 60 * 24);
+                  if ($daysDifference >= 1 && $holderName == null)
+                    $holderName = '';
+                  if ($daysDifference >= 1 && $email == null)
+                    $email = '';
+
+                  // update local transaction
+                  $transaction->email_address = $email;
+                  $transaction->card_holder_name = $holderName;
+                  $transaction->status = $paymentStatus;
+                  $transaction->amount = $amount;
+                  $transaction->save();
+                }
+              }
+            }
+          }
+
+          // get transaction from JDB PROD;
+          if( count($uncompletedOrderNo_PROD) > 0 ){
+            $inquiry = new \App\includes\JDB_PROD\api\Inquiry();
+            $response = null;
+            try {
+              $response = $inquiry->ExecuteWithOrderNos($uncompletedOrderNo_PROD);
+            }
+            catch (GuzzleException $e){
+              echo 'exception';
+            }
+            if( $response != null ){
+              $respData = json_decode($response, true);
+              if (is_array($respData) && isset($respData['response']['Data'])) {
+                $jdbData = $respData['response']['Data'];
+                foreach ($jdbData as $item){
+                  $updatedDate = (isset($item['PaymentStatusInfo']) && isset($item['PaymentStatusInfo']['LastUpdatedDttm'])) ? $item['PaymentStatusInfo']['LastUpdatedDttm'] : null;
+                  $paymentStatus = (isset($item['PaymentStatusInfo']) && isset($item['PaymentStatusInfo']['PaymentStatus'])) ? $item['PaymentStatusInfo']['PaymentStatus'] : null;
+                  $holderName = (isset($item['CreditCardDetails']) && isset($item['CreditCardDetails']['CardHolderName'])) ? $item['CreditCardDetails']['CardHolderName'] : null;
+                  $email = (isset($item['GeneralPayerDetails']) && isset($item['GeneralPayerDetails']['Email'])) ? $item['GeneralPayerDetails']['Email'] : null;
+                  $orderNo = $item['OrderNo'];
+                  $amount = $item['TransactionAmount']['Amount'];
+                  $transaction = Transaction::where('orderNo', $orderNo)->first();
+                  if( $transaction == null )
+                    continue;
+
+                  // check transaction is 1 day ago.
+                  $stringDateTimestamp = strtotime($updatedDate);
+                  $timeDifference = now()->timestamp - $stringDateTimestamp;
+                  $daysDifference = $timeDifference / (60 * 60 * 24);
+                  if ($daysDifference >= 1 && $holderName == null)
+                    $holderName = '';
+                  if ($daysDifference >= 1 && $email == null)
+                    $email = '';
+
+                  // update local transaction
+                  $transaction->email_address = $email;
+                  $transaction->card_holder_name = $holderName;
+                  $transaction->status = $paymentStatus;
+                  $transaction->amount = $amount;
+                  $transaction->save();
+                }
               }
             }
           }
@@ -343,7 +449,7 @@ class PaymentController extends Controller
     }
     catch (\Exception $e) {
       $code = 500;
-      $message = "Report Error 6: ".$e->getMessage();
+      $message = "Report Error 6: ".$e->getTraceAsString();
     }
     return response()->json([
       'code' => $code,

@@ -1,16 +1,15 @@
 <?php
 
+namespace App\includes\JDB_UAT\api;
+
+use App\includes\JDB_UAT\ActionRequest;
+use App\includes\JDB_UAT\SecurityData;
 use Carbon\Carbon;
-use GuzzleHttp\Exception\GuzzleException;
-// use Paco\PhpDemo\ActionRequest;
-// use Paco\PhpDemo\SecurityData;
-use App\includes\ActionRequest;
-use App\includes\SecurityData;
+use Exception;
 
 class Refund extends ActionRequest
 {
     /**
-     * @throws GuzzleException
      */
     public function Execute(): string
     {
@@ -42,7 +41,6 @@ class Refund extends ActionRequest
 
         echo $stringRequest;
 
-        //third-party http client https://github.com/guzzle/guzzle
         $response = $this->client->post('api/1.0/Refund/refund', [
             'headers' => [
                 'Accept' => 'application/json',
@@ -56,7 +54,6 @@ class Refund extends ActionRequest
     }
 
     /**
-     * @throws GuzzleException
      * @throws Exception
      */
     public function ExecuteJose(): string
@@ -102,7 +99,6 @@ class Refund extends ActionRequest
 
         $body = $this->EncryptPayload($stringPayload, $signingKey, $encryptingKey);
 
-        //third-party http client https://github.com/guzzle/guzzle
         $response = $this->client->post('api/1.0/Refund/refund', [
             'headers' => [
                 'Accept' => 'application/jose',
@@ -118,5 +114,4 @@ class Refund extends ActionRequest
 
         return $this->DecryptToken($token, $decryptingKey, $signatureVerificationKey);
     }
-
 }

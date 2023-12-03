@@ -19,6 +19,7 @@
         <th>Crypto<br>Fee(%)</th>
         <th style="width: 80px;">API Key</th>
         <th style="width: 100px;">Status</th>
+        <th style="width: 100px;">Service<br/>Type</th>
         <th>Update Date</th>
         <th>Operation</th>
       </tr>
@@ -42,6 +43,12 @@
           <select class="form-control" id="new_status">
             <option value="1">Enable</option>
             <option value="0">Disable</option>
+          </select>
+        </td>
+        <td>
+          <select class="form-control" id="new_service_type">
+            <option value="UAT">UAT</option>
+            <option value="PROD">PROD</option>
           </select>
         </td>
         <td></td>
@@ -82,6 +89,22 @@
               </span>
             @endif
           </td>
+          <td class="service_type">
+            @if ($partner->service_type == 'UAT')
+              <span class="text-warning-emphasis">
+                  <i class="fas fa-user-circle large-icon"></i>
+              </span>
+            @elseif ($partner->service_type == 'PROD')
+              <span class="text-success">
+                  <i class="fab fa-product-hunt large-icon"></i>
+              </span>
+            @else
+              <span class="text-danger">
+                <i class="fas fa-exclamation-triangle"></i>
+              </span>
+            @endif
+            &nbsp{{ $partner->service_type }}
+          </td>
           <td class="update_at">{{ $partner->updated_at }}</td>
           <td>
             <button class="btn btn-outline-success" onclick="applyApiKey({{ $partner->id }})">
@@ -118,6 +141,7 @@
         fee: $('#new_fee').val(),
         crypto_fee: $('#new_crypto_fee').val(),
         status: $('#new_status').val(),
+        service_type: $('#new_service_type').val(),
       };
 
       $.ajax({
@@ -149,6 +173,23 @@
                         </span>'
             }
 
+            let service_type;
+            if( body.service_type === 'PROD' ){
+              service_type = '<span class="text-success">\
+                            <i class="fab fa-product-hunt large-icon"></i>\
+                        </span>'
+            }
+            else if( body.service_type === 'UAT' ){
+              service_type = '<span class="text-warning-emphasis">\
+                              <i class="fas fa-user-circle large-icon"></i>\
+                          </span>';
+            }
+            else{
+              service_type = '<span class="text-danger">\
+                              <i class="fas fa-exclamation-triangle"></i>\
+                          </span>';
+            }
+
             let newRow = '<tr>\
                         <td class="name">'+ body.name +'</td>\
                         <td class="domain">'+ body.domain +'</td>\
@@ -157,6 +198,7 @@
                         <td><button class="trans-btn" onclick="getApiKey('+ body.id +')" data-bs-toggle="modal" data-bs-target="#apiKeyModal">\
                           <i class="fas fa-eye-slash"></i></button></td>\
                         <td class="status">'+ status +'</td>\
+                        <td class="service_type">'+ service_type + '&nbsp' + body.service_type +'</td>\
                         <td class="update_at">'+ body.updated_at +'</td>\
                         <td>\
                           <button class="btn btn-outline-success" onclick="applyApiKey('+ body.id +')">\
@@ -210,9 +252,11 @@
             $('#modal_id').val(data.id);
             $('#modal_name').val(data.name);
             $('#modal_domain').val(data.domain);
+            $('.update-partner').text(data.name + ' (' + data.domain + ')');
             $('#modal_fee').val(data.fee);
             $('#modal_crypto_fee').val(data.crypto_fee);
             $('#modal_status').val(data.status);
+            $('#modal_service_type').val(data.service_type);
             $('#modal_api_key').text(data.api_key);
           }
         },
@@ -265,11 +309,32 @@
       });
     }
 
-    function getApiKey(id, other){
+    function getApiKey( id, other){
 
       let dataToSend = {
         id: id,
       };
+
+      $.ajax({
+        url: window.location.origin + '/admin/apikey-get-partner',
+        type: 'POST',
+        data: JSON.stringify(dataToSend),
+        contentType: 'application/json',
+        headers: {
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+          if( response['code'] !== 200 ){
+            $('.update-partner-apikey').text('');
+          }
+          else{
+            let data = response['body'];
+            $('.update-partner-apikey').text(data.name + ' (' + data.domain + ')');
+          }
+        },
+        error: function(xhr, textStatus, errorThrown) {
+        }
+      });
 
       $.ajax({
         url: window.location.origin + '/admin/apikey-get-apikey',

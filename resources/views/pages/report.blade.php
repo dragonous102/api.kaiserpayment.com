@@ -174,7 +174,7 @@
             return response.body.data;
           },
           beforeSend: function (xhr) {
-            xhr.setRequestHeader('Authorization', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjEiLCJuYW1lIjoiS0FJU0VSIiwiZG9tYWluIjoiQVBJLktBSVNFUlBBWU1FTlQuQ09NIiwiZmVlIjoiOSIsImV4cCI6NDg1MzM5NTc1Nn0.hQUB1rNcP6uIFyo8NxokcxkDcHYnMbQRGaLwB3P-Wp0');
+            xhr.setRequestHeader('Authorization', API_KEY);
           },
           error: function(jqXHR, textStatus, errorThrown) {
             $('.error-box').show();

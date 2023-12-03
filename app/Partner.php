@@ -14,6 +14,7 @@ class Partner extends Model
     'fee',
     'crypto_fee',
     'status',
+    'service_type'
   ];
 
   protected $table = 'partners';
