@@ -7,7 +7,7 @@
   <!-- Add Bootstrap CSS link -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-  <link rel="stylesheet" href="{{ asset('css/my.css', config('env') == 'local') }}">
+  <link rel="stylesheet" href="{{ asset('css/my.css?ver=001', config('env') == 'local') }}">
 
   <!-- Add Bootstrap JS and Popper.js (required for some Bootstrap components) -->
   <!-- jQuery -->
