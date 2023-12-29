@@ -611,7 +611,6 @@ $emailError = 'no error';
     $transaction->status = $paymentStatus;
     $transaction->card_holder_name = $cardHolderName;
     $transaction->save();
-    return $emailError;
 
     // Redirect to partner's backend
     $redirectUrl = sprintf('https://%s/payment-confirmation?orderNo=%s&productDescription=%s&controllerInternalId=%s',
