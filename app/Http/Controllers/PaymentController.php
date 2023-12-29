@@ -3,13 +3,18 @@ namespace App\Http\Controllers;
 use App\Library\ApiKey;
 use App\Library\Constants;
 use App\Library\DateUtil;
+use App\Mail\SendEmail;
 use App\Partner;
 use App\Transaction;
+use ErrorException;
 use GuzzleHttp\Exception\GuzzleException;
 use http\Exception\RuntimeException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Mockery\Exception;
+use Swift_TransportException;
 
 require_once (app_path().'/includes/JDB_UAT/api/Payment.php');
 require_once (app_path().'/includes/JDB_UAT/api/Inquiry.php');
@@ -79,6 +84,9 @@ class PaymentController extends Controller
           // Check request parameters
           $amount = $request->input("amount");
           $productName = $request->input("product_name");
+          $email = $request->input("email");
+          $name = $request->input("name");
+
           if(($amount == null || !is_numeric($amount)) && ($productName == null || strlen(trim($productName)) == 0 )){
             $code = 400;
             $message = "Payment Error 5";
@@ -101,14 +109,16 @@ class PaymentController extends Controller
 
               if( $serviceType == Constants::$UAT ) {
                 $payment = new \App\includes\JDB_UAT\api\Payment();
-                $response = $payment->ExecuteJose($amount, $productName, $apiKeyPartner['domain'], $apiKeyPartner['fee']);
+                $response = $payment->ExecuteJose($amount, $productName, $apiKeyPartner['domain'], $apiKeyPartner['fee'], $email, $name);
                 $respData = json_decode($response, true);
                 if (is_array($respData) && isset($respData['data'])) {
 
                   // Save transaction
                   $transaction = new Transaction();
                   $transaction->partner_id = $apiKeyPartner['id'];
-                  $transaction->email_address = null;
+                  $transaction->email_address = $email;
+                  $transaction->username = $name;
+                  $transaction->email_sent = 'draft';
                   $transaction->card_holder_name = null;
                   $transaction->orderNo = $respData['data']['paymentIncompleteResult']['orderNo'];
                   $transaction->amount = $amount;
@@ -132,7 +142,7 @@ class PaymentController extends Controller
               }
               else {
                 $payment = new \App\includes\JDB_PROD\api\Payment();
-                $response = $payment->ExecuteJose($amount, $productName, $apiKeyPartner['domain'], $apiKeyPartner['fee']);
+                $response = $payment->ExecuteJose($amount, $productName, $apiKeyPartner['domain'], $apiKeyPartner['fee'], $email, $name);
                 $respData = json_decode($response, true);
 
                 if (is_array($respData) && isset($respData['response']) && isset($respData['response']['Data'])) {
@@ -140,7 +150,9 @@ class PaymentController extends Controller
                   // Save transaction
                   $transaction = new Transaction();
                   $transaction->partner_id = $apiKeyPartner['id'];
-                  $transaction->email_address = null;
+                  $transaction->email_address = $email;
+                  $transaction->username = $name;
+                  $transaction->email_sent = 'draft';
                   $transaction->card_holder_name = null;
                   $transaction->orderNo = $respData['response']['Data']['paymentIncompleteResult']['orderNo'];
                   $transaction->amount = $amount;
@@ -198,8 +210,10 @@ class PaymentController extends Controller
     $success = false;
     $timestamp = now()->toIso8601String();
     $body = [];
+    $detailedData = null;
 
     // Extract search parameters from the request
+    $detail = $request->input('detail');
     $orderNo = $request->input('orderNo');
     $name = $request->input('name');
     $fromDate = $request->input('fromDate');
@@ -340,11 +354,12 @@ class PaymentController extends Controller
               $respData = json_decode($response, true);
               if (is_array($respData) && isset($respData['data'])) {
                 $jdbData = $respData['data'];
+                if( $detail == 1 )
+                  $detailedData = $jdbData;
                 foreach ($jdbData as $item){
                   $updatedDate = (isset($item['paymentStatusInfo']) && isset($item['paymentStatusInfo']['lastUpdatedDttm'])) ? $item['paymentStatusInfo']['lastUpdatedDttm'] : null;
                   $paymentStatus = (isset($item['paymentStatusInfo']) && isset($item['paymentStatusInfo']['paymentStatus'])) ? $item['paymentStatusInfo']['paymentStatus'] : null;
                   $holderName = (isset($item['creditCardDetails']) && isset($item['creditCardDetails']['cardHolderName'])) ? $item['creditCardDetails']['cardHolderName'] : null;
-                  $email = (isset($item['generalPayerDetails']) && isset($item['generalPayerDetails']['email'])) ? $item['generalPayerDetails']['email'] : null;
                   $orderNo = $item['orderNo'];
                   $amount = $item['transactionAmount']['amount'];
                   $transaction = Transaction::where('orderNo', $orderNo)->first();
@@ -357,11 +372,8 @@ class PaymentController extends Controller
                   $daysDifference = $timeDifference / (60 * 60 * 24);
                   if ($daysDifference >= 1 && $holderName == null)
                     $holderName = '';
-                  if ($daysDifference >= 1 && $email == null)
-                    $email = '';
 
                   // update local transaction
-                  $transaction->email_address = $email;
                   $transaction->card_holder_name = $holderName;
                   $transaction->status = $paymentStatus;
                   $transaction->amount = $amount;
@@ -385,11 +397,12 @@ class PaymentController extends Controller
               $respData = json_decode($response, true);
               if (is_array($respData) && isset($respData['response']['Data'])) {
                 $jdbData = $respData['response']['Data'];
+                if( $detail == 1 )
+                  $detailedData = $jdbData;
                 foreach ($jdbData as $item){
                   $updatedDate = (isset($item['PaymentStatusInfo']) && isset($item['PaymentStatusInfo']['LastUpdatedDttm'])) ? $item['PaymentStatusInfo']['LastUpdatedDttm'] : null;
                   $paymentStatus = (isset($item['PaymentStatusInfo']) && isset($item['PaymentStatusInfo']['PaymentStatus'])) ? $item['PaymentStatusInfo']['PaymentStatus'] : null;
                   $holderName = (isset($item['CreditCardDetails']) && isset($item['CreditCardDetails']['CardHolderName'])) ? $item['CreditCardDetails']['CardHolderName'] : null;
-                  $email = (isset($item['GeneralPayerDetails']) && isset($item['GeneralPayerDetails']['Email'])) ? $item['GeneralPayerDetails']['Email'] : null;
                   $orderNo = $item['OrderNo'];
                   $amount = $item['TransactionAmount']['Amount'];
                   $transaction = Transaction::where('orderNo', $orderNo)->first();
@@ -402,11 +415,8 @@ class PaymentController extends Controller
                   $daysDifference = $timeDifference / (60 * 60 * 24);
                   if ($daysDifference >= 1 && $holderName == null)
                     $holderName = '';
-                  if ($daysDifference >= 1 && $email == null)
-                    $email = '';
 
                   // update local transaction
-                  $transaction->email_address = $email;
                   $transaction->card_holder_name = $holderName;
                   $transaction->status = $paymentStatus;
                   $transaction->amount = $amount;
@@ -430,6 +440,7 @@ class PaymentController extends Controller
 
           $success = true;
           $message = "report data";
+          $body['detail'] = $detailedData;
           $body['data'] = $results;
           $body['page_count'] = $totalPages;
           $body['page_no'] = $pageNo == null ? 1 : $pageNo;
@@ -516,6 +527,203 @@ class PaymentController extends Controller
     }
 
     return null;
+  }
+
+  /**
+   */
+  public function kaiserPaymentConfirmation(Request $request)
+  {
+    // Check parameters
+    $orderNo = $request->input('orderNo');
+    $productDescription = $request->input('productDescription');
+    $controllerInternalId = $request->input('controllerInternalId');
+
+    // Create api request
+    $apiRequest = Request::create(env('KAISER_BACKEND').'/api/getReport', 'GET', ['orderNo' => $orderNo, 'detail' => 1]);
+    $apiRequest->headers->set('Authorization', env('API.KAISERPAYMENT.COM'));
+
+    // Get service type
+    $transaction = Transaction::where('orderNo', $orderNo)->first();
+    $dbPartner = Partner::find($transaction->partner_id);
+    $serviceType = $dbPartner->service_type;
+
+    // Get a report
+    $report = json_decode($this->getReport( $apiRequest )->getContent());
+    $paymentStatus = $transaction->status;
+    $cardHolderName = $transaction->card_holder_name;
+    $email = $transaction->email_address;
+    if( strtoupper($serviceType) == 'UAT' ) {
+      $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
+      $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
+    }
+
+    // Create and send email
+    if( $email != null && strlen($email) > 0 ) {
+      try {
+        $mailingResult = Mail::to($email)->send(new SendEmail('failure'));
+        $transaction->email_sent = 'sent';
+        Log::info('Email sent successfully');
+        Log::info(json_encode($mailingResult));
+      } catch (Swift_TransportException $transportException) {
+        $transaction->email_sent = 'failed';
+        Log::error('SMTP Exception: ' . $transportException->getMessage());
+      } catch (Exception $exception) {
+        $transaction->email_sent = 'failed';
+        Log::error('Exception: ' . $exception->getMessage());
+      }
+    }
+
+    // Save payment to a report
+    $transaction->status = $paymentStatus;
+    $transaction->card_holder_name = $cardHolderName;
+    $transaction->save();
+
+    // Redirect to partner's backend
+    $redirectUrl = sprintf('https://%s/payment-confirmation?orderNo=%s&productDescription=%s&controllerInternalId=%s',
+      strtolower($dbPartner->domain),
+      $orderNo,
+      $productDescription,
+      $controllerInternalId);
+    return redirect($redirectUrl);
+  }
+
+  public function kaiserPaymentFailed(Request $request)
+  {
+    // Check parameters
+    $orderNo = $request->input('orderNo');
+    $productDescription = $request->input('productDescription');
+    $controllerInternalId = $request->input('controllerInternalId');
+
+    // Create api request
+    $apiRequest = Request::create(env('KAISER_BACKEND').'/api/getReport', 'GET', ['orderNo' => $orderNo, 'detail' => 1]);
+    $apiRequest->headers->set('Authorization', env('API.KAISERPAYMENT.COM'));
+
+    // Get service type
+    $transaction = Transaction::where('orderNo', $orderNo)->first();
+    $dbPartner = Partner::find($transaction->partner_id);
+    $serviceType = $dbPartner->service_type;
+
+    // Get a report
+    $report = json_decode($this->getReport( $apiRequest )->getContent());
+    $paymentStatus = $transaction->status;
+    $cardHolderName = $transaction->card_holder_name;
+    $email = $transaction->email_address;
+    if( strtoupper($serviceType) == 'UAT' ) {
+      $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
+      $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
+    }
+
+    // Create and send email
+    if( $email != null && strlen($email) > 0 ) {
+      try {
+        $mailingResult = Mail::to($email)->send(new SendEmail('failure'));
+        $transaction->email_sent = 'sent';
+        Log::info('Email sent successfully');
+        Log::info(json_encode($mailingResult));
+      } catch (Swift_TransportException $transportException) {
+        $transaction->email_sent = 'failed';
+        Log::error('SMTP Exception: ' . $transportException->getMessage());
+      } catch (Exception $exception) {
+        $transaction->email_sent = 'failed';
+        Log::error('Exception: ' . $exception->getMessage());
+      }
+    }
+
+    // Save payment to a report
+    $transaction->status = $paymentStatus;
+    $transaction->card_holder_name = $cardHolderName;
+    $transaction->save();
+
+    // Redirect to partner's backend
+    $redirectUrl = sprintf('https://%s/payment-failed?orderNo=%s&productDescription=%s&controllerInternalId=%s',
+      strtolower($dbPartner->domain),
+      $orderNo,
+      $productDescription,
+      $controllerInternalId);
+    return redirect($redirectUrl);
+  }
+
+  public function kaiserPaymentCancellation(Request $request)
+  {
+    // Check parameters
+    $orderNo = $request->input('orderNo');
+    $productDescription = $request->input('productDescription');
+    $controllerInternalId = $request->input('controllerInternalId');
+
+    // Create api request
+    $apiRequest = Request::create(env('KAISER_BACKEND').'/api/getReport', 'GET', ['orderNo' => $orderNo, 'detail' => 1]);
+    $apiRequest->headers->set('Authorization', env('API.KAISERPAYMENT.COM'));
+
+    // Get service type
+    $transaction = Transaction::where('orderNo', $orderNo)->first();
+    $dbPartner = Partner::find($transaction->partner_id);
+    $serviceType = $dbPartner->service_type;
+
+    // Get a report
+    $report = json_decode($this->getReport( $apiRequest )->getContent());
+    $paymentStatus = $transaction->status;
+    $cardHolderName = $transaction->card_holder_name;
+    $email = $transaction->email_address;
+    if( strtoupper($serviceType) == 'UAT' ) {
+      try {
+        $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
+        $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
+      }
+      catch (ErrorException $e){}
+    }
+
+    // Create and send email
+    if( $email != null && strlen($email) > 0 ) {
+      try {
+        $mailingResult = Mail::to($email)->send(new SendEmail('cancel'));
+        $transaction->email_sent = 'sent';
+        Log::info('Email sent successfully');
+        Log::info(json_encode($mailingResult));
+      } catch (Swift_TransportException $transportException) {
+        $transaction->email_sent = 'failed';
+        Log::error('SMTP Exception: ' . $transportException->getMessage());
+      } catch (Exception $exception) {
+        $transaction->email_sent = 'failed';
+        Log::error('Exception: ' . $exception->getMessage());
+      }
+    }
+
+    // Save payment to a report
+    $transaction->status = $paymentStatus;
+    $transaction->card_holder_name = $cardHolderName;
+    $transaction->save();
+
+    // Redirect to partner's backend
+    $redirectUrl = sprintf('https://%s/payment-cancellation?orderNo=%s&productDescription=%s&controllerInternalId=%s',
+      strtolower($dbPartner->domain),
+      $orderNo,
+      $productDescription,
+      $controllerInternalId);
+    return redirect($redirectUrl);
+  }
+
+  public function kaiserPaymentBackend(Request $request)
+  {
+    // Check parameters
+    $orderNo = $request->input('orderNo');
+    $productDescription = $request->input('productDescription');
+    $controllerInternalId = $request->input('controllerInternalId');
+
+    // Create api request
+    $apiRequest = Request::create(env('KAISER_BACKEND').'/api/getReport', 'GET', ['orderNo' => $orderNo, 'detail' => 1]);
+    $apiRequest->headers->set('Authorization', env('API.KAISERPAYMENT.COM'));
+
+    // Get service type
+    $transaction = Transaction::where('orderNo', $orderNo)->first();
+    $dbPartner = Partner::find($transaction->partner_id);
+
+    // Redirect to partner's backend
+    $redirectUrl = sprintf('https://%s/payment-backend?orderNo=%s&productDescription=%s&controllerInternalId=%s',
+      strtolower($dbPartner->domain),
+      $orderNo,
+      $productDescription,
+      $controllerInternalId);
+    return redirect($redirectUrl);
   }
 }
 

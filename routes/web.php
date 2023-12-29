@@ -31,6 +31,11 @@ Route::middleware(['auth'])->group(function () {
   Route::get('/admin/paymentPage', 'JdbController@payment')->name('page.payment');
   Route::get('/admin/reportPage', 'JdbController@report')->name('page.report');
 
+  Route::get('/kaiser-payment-confirmation', 'PaymentController@kaiserPaymentConfirmation')->name('kaiserPaymentConfirmation');
+  Route::get('/kaiser-payment-failed', 'PaymentController@kaiserPaymentFailed')->name('kaiserPaymentFailed');
+  Route::get('/kaiser-payment-cancellation', 'PaymentController@kaiserPaymentCancellation')->name('kaiserPaymentCancellation');
+  Route::get('/kaiser-payment-backend', 'PaymentController@kaiserPaymentBackend')->name('kaiserPaymentBackend');
+
   Route::get('/admin/apikey', 'ApiKeyController@showDashboard')->name('page.apikey.dashboard');
   Route::post('/admin/apikey-add-partner', 'ApiKeyController@addNewPartner')->name('apikey.add.partner');
   Route::post('/admin/apikey-get-partner', 'ApiKeyController@getPartner')->name('apikey.get.partner');

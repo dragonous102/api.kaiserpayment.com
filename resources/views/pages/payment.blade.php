@@ -14,7 +14,7 @@
     <div class="col-md-6">
       <div class="card">
         <div class="card-header">Parameters of JDB pre-Payment API</div>
-        <div class="card-body" style="height: 220px;">
+        <div class="card-body">
           <form>
             @csrf
             <div class="mb-3">
@@ -24,6 +24,14 @@
             <div class="mb-3">
               <label for="product_name" class="form-label">Product Name</label>
               <input type="text" class="form-control" id="product_name" name="product_name" placeholder="Enter product name">
+            </div>
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input type="text" class="form-control" id="email" name="email" placeholder="Enter email address">
+            </div>
+            <div class="mb-3">
+              <label for="name" class="form-label">Name</label>
+              <input type="text" class="form-control" id="name" name="name" placeholder="Enter name of user">
             </div>
           </form>
         </div>
@@ -56,6 +64,8 @@
         let dataToSend = {
           amount: $('#amount').val(),
           product_name: $('#product_name').val(),
+          email: $('#email').val(),
+          name: $('#name').val(),
         };
 
         $.ajax({

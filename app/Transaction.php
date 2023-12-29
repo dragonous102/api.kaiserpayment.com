@@ -24,6 +24,8 @@ class Transaction extends Model
     'status',
     'partner_domain',
     'service_type',
+    'username',
+    'email_sent',
   ];
 
   // Define the relationship with the Partner model

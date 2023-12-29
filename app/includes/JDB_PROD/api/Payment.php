@@ -178,7 +178,7 @@ class Payment extends ActionRequest
   /**
    * @throws Exception
    */
-  public function ExecuteJose($amount = 0, $productName = "", $host = "", $feePercent = 0): string
+  public function ExecuteJose($amount = 0, $productName = "", $host = "", $feePercent = 0, $email = null, $name = null): string
   {
     // Prepare basic information
     $amount = ceil($amount * 100) / 100;
@@ -243,6 +243,14 @@ class Payment extends ActionRequest
         [
           "fieldName" => "partner",
           "fieldValue" => $host
+        ],
+        [
+          "fieldName" => "email",
+          "fieldValue" => $email
+        ],
+        [
+          "fieldName" => "name",
+          "fieldValue" => $name
         ]
       ]
     ];

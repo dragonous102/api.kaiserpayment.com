@@ -179,7 +179,7 @@ class Payment extends ActionRequest
   /**
    * @throws Exception
    */
-  public function ExecuteJose($amount = 0, $productName = "", $host = "", $feePercent = 0): string
+  public function ExecuteJose($amount = 0, $productName = "", $host = "", $feePercent = 0, $email = null, $name = null): string
   {
     // Prepare basic information
     $amount = ceil($amount * 100) / 100;
@@ -193,10 +193,7 @@ class Payment extends ActionRequest
     $orderNo = $now->getPreciseTimestamp(3);
 
     // Prepare urls
-    if ($host == "localhost")
-      $baseUrl = "http://localhost:8000";
-    else
-      $baseUrl = "https://" . $host;
+    $baseUrl = env('KAISER_BACKEND');
 
     $request = [
       "apiRequest" => [
@@ -218,10 +215,10 @@ class Payment extends ActionRequest
         "amount" => $amount
       ],
       "notificationURLs" => [
-        "confirmationURL" => "$baseUrl/payment-confirmation",
-        "failedURL" => "$baseUrl/payment-failed",
-        "cancellationURL" => "$baseUrl/payment-cancellation",
-        "backendURL" => "$baseUrl/payment-backend"
+        "confirmationURL" => "$baseUrl/kaiser-payment-confirmation",
+        "failedURL" => "$baseUrl/kaiser-payment-failed",
+        "cancellationURL" => "$baseUrl/kaiser-payment-cancellation",
+        "backendURL" => "$baseUrl/kaiser-payment-backend"
       ],
       "customFieldList" => [
         [
@@ -235,6 +232,14 @@ class Payment extends ActionRequest
         [
           "fieldName" => "partner",
           "fieldValue" => $host
+        ],
+        [
+          "fieldName" => "email",
+          "fieldValue" => $email
+        ],
+        [
+          "fieldName" => "name",
+          "fieldValue" => $name
         ]
       ]
     ];
