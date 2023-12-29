@@ -16,7 +16,7 @@ class LogRequestMiddleware
      */
     public function handle($request, Closure $next)
     {
-      Log::info('Request Route URL in LogRequestMiddleware: ' . $request->path());
+      //Log::info('Request Route URL in LogRequestMiddleware: ' . $request->path());
       return $next($request);
     }
 }
