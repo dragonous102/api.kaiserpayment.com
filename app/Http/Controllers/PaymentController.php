@@ -562,7 +562,7 @@ $emailError = 'no error';
     // Create and send email
     if( $email != null && strlen($email) > 0 ) {
       /*try {
-        $mailingResult = Mail::to($email)->send(new SendEmail('failure'));
+        $mailingResult = Mail::to($email)->send(new SendEmail('success'));
         $transaction->email_sent = 'sent';
         Log::info('Email sent successfully');
         Log::info(json_encode($mailingResult));
@@ -576,7 +576,7 @@ $emailError = 'no error';
         $emailError = $exception->getMessage();
       }*/
 
-      $emailObj = new PHPMailer(true);
+      /*$emailObj = new PHPMailer(true);
       $emailObj->isSMTP();
       $emailObj->SMTPDebug = 2;
       $emailObj->SMTPAuth = true;
@@ -597,14 +597,14 @@ $emailError = 'no error';
         $emailObj->send();
       } catch (Exception $e) {
         $emailError = $emailObj->ErrorInfo;
-      }
+      }*/
 
-      /*$rawtext ="Verification code for buying ";
+      $rawtext ="Verification code for buying ";
       Mail::send([], [], function ($message) use ($rawtext, $email) {
         $message->to($email)->subject('Please confirm your buy.');
-        $message->from(env("MAIL_FROM_ADDRESS"), 'Ultimo Payment');
+        $message->from(env("MAIL_FROM_ADDRESS"));
         $message->setBody($rawtext, 'text/html');
-      });*/
+      });
     }
 
     // Save payment to a report
