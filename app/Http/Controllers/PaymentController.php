@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Mockery\Exception;
+use PHPMailer\PHPMailer\PHPMailer;
 use Swift_TransportException;
 
 require_once (app_path().'/includes/JDB_UAT/api/Payment.php');
@@ -530,6 +531,7 @@ class PaymentController extends Controller
   }
 
   /**
+   * @throws \PHPMailer\PHPMailer\Exception
    */
   public function kaiserPaymentConfirmation(Request $request)
   {
@@ -556,10 +558,10 @@ class PaymentController extends Controller
       $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
       $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
     }
-
+$emailError = 'no error';
     // Create and send email
     if( $email != null && strlen($email) > 0 ) {
-      try {
+      /*try {
         $mailingResult = Mail::to($email)->send(new SendEmail('failure'));
         $transaction->email_sent = 'sent';
         Log::info('Email sent successfully');
@@ -567,16 +569,49 @@ class PaymentController extends Controller
       } catch (Swift_TransportException $transportException) {
         $transaction->email_sent = 'failed';
         Log::error('SMTP Exception: ' . $transportException->getMessage());
+        $emailError = $transportException->getMessage();
       } catch (Exception $exception) {
         $transaction->email_sent = 'failed';
         Log::error('Exception: ' . $exception->getMessage());
+        $emailError = $exception->getMessage();
+      }*/
+
+      $emailObj = new PHPMailer(true);
+      $emailObj->isSMTP();
+      $emailObj->SMTPDebug = 2;
+      $emailObj->SMTPAuth = true;
+      $emailObj->SMTPAutoTLS = false; // Disable auto TLS
+      $emailObj->SMTPSecure = "ssl";
+      $emailObj->Host = env('MAIL_HOST');
+      $emailObj->Port = env('MAIL_PORT');
+      $emailObj->Username = env('MAIL_USERNAME');
+      $emailObj->Password = env('MAIL_PASSWORD');
+
+      $emailObj->setFrom(env('MAIL_FROM_ADDRESS'));
+      $emailObj->addAddress($email);
+      $emailObj->isHTML(true);
+      $emailObj->Body = "My HTML Code";
+      $emailObj->Subject = "My Subject";
+
+      try {
+        $emailObj->send();
+      } catch (Exception $e) {
+        $emailError = $emailObj->ErrorInfo;
       }
+
+      /*$rawtext ="Verification code for buying ";
+      Mail::send([], [], function ($message) use ($rawtext, $email) {
+        $message->to($email)->subject('Please confirm your buy.');
+        $message->from(env("MAIL_FROM_ADDRESS"), 'Ultimo Payment');
+        $message->setBody($rawtext, 'text/html');
+      });*/
     }
 
     // Save payment to a report
     $transaction->status = $paymentStatus;
     $transaction->card_holder_name = $cardHolderName;
     $transaction->save();
+    return $emailError;
 
     // Redirect to partner's backend
     $redirectUrl = sprintf('https://%s/payment-confirmation?orderNo=%s&productDescription=%s&controllerInternalId=%s',
