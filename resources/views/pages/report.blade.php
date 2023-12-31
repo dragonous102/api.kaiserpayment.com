@@ -180,7 +180,13 @@
           error: function(jqXHR, textStatus, errorThrown) {
             $('.error-box').show();
             $('.error-box .card-header').html("Error");
-            $('.error-box .card-body').html(jqXHR.responseJSON.message);
+            if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
+              // Display the error message if available
+              $('.error-box .card-body').html(jqXHR.responseJSON.message);
+            } else {
+              // If 'message' is not available, display a generic error message
+              $('.error-box .card-body').html("An error occurred.");
+            }
             $(".api-response").removeClass('text-danger').removeClass('text-success').addClass('text-danger');
             return null;
           }
