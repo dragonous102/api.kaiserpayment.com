@@ -17,7 +17,7 @@
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
   <!-- constant js -->
-  <script src="{{ asset('js/constant.js?ver=002', config('env') == 'local') }}"></script>
+  <script src="{{ asset('js/constant.js?ver=003', config('env') == 'local') }}"></script>
 </head>
 <body>
 <header class="text-center py-4">
