@@ -586,18 +586,20 @@ class PaymentController extends Controller
     $email = $transaction->email_address;
     $customFieldList = array();
     $paymentMethod = null;
-    if( strtoupper($serviceType) == 'UAT' ) {
-      $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
-      $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
-      $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->paymentType];
-      $customFieldList = $report->body->detail[0]->customFieldList;
+    try {
+      if (strtoupper($serviceType) == 'UAT') {
+        $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
+        $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
+        $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->paymentType];
+        $customFieldList = $report->body->detail[0]->customFieldList;
+      } else {
+        $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
+        $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
+        $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->paymentType];
+        $customFieldList = $report->body->detail[0]->CustomFieldList;
+      }
     }
-    else {
-      $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
-      $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
-      $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->paymentType];
-      $customFieldList = $report->body->detail[0]->CustomFieldList;
-    }
+    catch(Exception $e){}
 
     if( $email == null || strlen(trim($email)) == 0 ) {
       foreach( $customFieldList as $item ){
@@ -743,16 +745,18 @@ class PaymentController extends Controller
     $cardHolderName = $transaction->card_holder_name;
     $email = $transaction->email_address;
     $paymentMethod = null;
-    if( strtoupper($serviceType) == 'UAT' ) {
-      $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
-      $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
-      $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->paymentType];
+    try {
+      if (strtoupper($serviceType) == 'UAT') {
+        $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
+        $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
+        $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->paymentType];
+      } else {
+        $paymentStatus = $report->body->detail[0]->PaymentStatusInfo->PaymentStatus;
+        $cardHolderName = $report->body->detail[0]->CreditCardDetails->CardHolderName;
+        $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->PaymentType];
+      }
     }
-    else{
-      $paymentStatus = $report->body->detail[0]->PaymentStatusInfo->PaymentStatus;
-      $cardHolderName = $report->body->detail[0]->CreditCardDetails->CardHolderName;
-      $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->PaymentType];
-    }
+    catch (Exception $e){}
 
     // Create and send email
     if( $email != null && strlen($email) > 0 ) {
