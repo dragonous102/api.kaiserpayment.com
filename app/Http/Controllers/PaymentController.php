@@ -677,7 +677,7 @@ class PaymentController extends Controller
       $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->paymentType];
     }
     else{
-      return json_encode($report);
+      //return json_encode($report);
       $paymentStatus = $report->body->detail[0]->PaymentStatusInfo->PaymentStatus;
       $cardHolderName = $report->body->detail[0]->CreditCardDetails->CardHolderName;
       $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->PaymentType];
