@@ -6,6 +6,7 @@ use App\Library\DateUtil;
 use App\Mail\SendEmail;
 use App\Partner;
 use App\Transaction;
+use DateTime;
 use ErrorException;
 use GuzzleHttp\Exception\GuzzleException;
 use http\Exception\RuntimeException;
@@ -14,8 +15,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Mockery\Exception;
-use PHPMailer\PHPMailer\PHPMailer;
+use setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException;
+use setasign\Fpdi\PdfParser\Filter\FilterException;
+use setasign\Fpdi\PdfParser\PdfParserException;
+use setasign\Fpdi\PdfParser\Type\PdfTypeException;
+use setasign\Fpdi\PdfReader\PdfReaderException;
 use Swift_TransportException;
+use \setasign\Fpdi\Fpdi;
 
 require_once (app_path().'/includes/JDB_UAT/api/Payment.php');
 require_once (app_path().'/includes/JDB_UAT/api/Inquiry.php');
@@ -43,6 +49,29 @@ class PaymentController extends Controller
     "F"=>"Rejected",
     "E"=>"Expired",
     "C"=>"Cancelled",
+  );
+
+  private $PAYMENT_METHOD = array(
+    "CC"    => "Credit Card",
+    "IPP"   => "IPP",
+    "CC-VI" => "Credit Card (Visa)",
+    "CC-CA" => "Credit Card (Master Card)",
+    "CC-AX" => "Credit Card (American Express)",
+    "CC-DC" => "Credit Card (Diners Club)",
+    "CC-DS" => "Credit Card (Discover)",
+    "CC-UP" => "Credit Card (UnionPay)",
+    "CC-JC" => "Credit Card (JCB)",
+    "CC-MP" => "Credit Card (Maestro)",
+    "CC-KP" => "Credit Card (KCP)",
+    "CC-TP" => "Credit Card (Tappay)",
+    "123"   => "123",
+    "BOOST" => "BOOST",
+    "CAPT"  => "CAPT",
+    "GRAB"  => "GRAB",
+    "KCP"   => "KCP",
+    "PPQR"  => "PPQR",
+    "TNG"   => "TNG",
+    "WC"    => "We Chat",
   );
 
   private $KAISER_DOMAIN = 'API.KAISERPAYMENT.COM';
@@ -262,6 +291,7 @@ class PaymentController extends Controller
               'transactions.orderNo',
               'transactions.partner_id',
               'transactions.email_address',
+              'transactions.email_sent',
               'transactions.card_holder_name',
               DB::raw('CAST(transactions.amount AS CHAR) as amount'),
               DB::raw('CAST(transactions.fee AS CHAR) as fee'),
@@ -554,57 +584,48 @@ class PaymentController extends Controller
     $paymentStatus = $transaction->status;
     $cardHolderName = $transaction->card_holder_name;
     $email = $transaction->email_address;
+    $customFieldList = array();
+    $paymentMethod = null;
     if( strtoupper($serviceType) == 'UAT' ) {
       $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
       $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
+      $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->paymentType];
+      $customFieldList = $report->body->detail[0]->customFieldList;
     }
-$emailError = 'no error';
-    // Create and send email
-    if( $email != null && strlen($email) > 0 ) {
-      /*try {
-        $mailingResult = Mail::to($email)->send(new SendEmail('success'));
+
+    if( $email == null || strlen(trim($email)) == 0 ) {
+      foreach( $customFieldList as $item ){
+        if( $item->fieldName == 'email' ) {
+          $email = $item->fieldValue;
+          $transaction->email_address = $email;
+        }
+      }
+    }
+
+    // Create a PDF file and send it to user by email
+    if( $email != null && strlen(trim($email)) > 0 ) {
+      try {
+        // Prepare main data
+        $transactionArray = $transaction->toArray();
+        $transactionArray['paymentMethod'] = $paymentMethod;
+        $dateTime = new DateTime($transactionArray['created_at']);
+        $transactionArray['created_at'] = $dateTime->format('Y-m-d H:i:s');
+
+        // Create a PDF file.
+        $filename = $this->saveTransactionPDF( $orderNo );
+
+        // Send mail
+        $mailingResult = Mail::to($email)->send(new SendEmail('success', $transactionArray, $filename));
         $transaction->email_sent = 'sent';
-        Log::info('Email sent successfully');
+        Log::info('Payment successful email sent successfully');
         Log::info(json_encode($mailingResult));
       } catch (Swift_TransportException $transportException) {
         $transaction->email_sent = 'failed';
         Log::error('SMTP Exception: ' . $transportException->getMessage());
-        $emailError = $transportException->getMessage();
       } catch (Exception $exception) {
         $transaction->email_sent = 'failed';
         Log::error('Exception: ' . $exception->getMessage());
-        $emailError = $exception->getMessage();
-      }*/
-
-      /*$emailObj = new PHPMailer(true);
-      $emailObj->isSMTP();
-      $emailObj->SMTPDebug = 2;
-      $emailObj->SMTPAuth = true;
-      $emailObj->SMTPAutoTLS = false; // Disable auto TLS
-      $emailObj->SMTPSecure = "ssl";
-      $emailObj->Host = env('MAIL_HOST');
-      $emailObj->Port = env('MAIL_PORT');
-      $emailObj->Username = env('MAIL_USERNAME');
-      $emailObj->Password = env('MAIL_PASSWORD');
-
-      $emailObj->setFrom(env('MAIL_FROM_ADDRESS'));
-      $emailObj->addAddress($email);
-      $emailObj->isHTML(true);
-      $emailObj->Body = "My HTML Code";
-      $emailObj->Subject = "My Subject";
-
-      try {
-        $emailObj->send();
-      } catch (Exception $e) {
-        $emailError = $emailObj->ErrorInfo;
-      }*/
-
-      $rawtext ="Verification code for buying ";
-      Mail::send([], [], function ($message) use ($rawtext, $email) {
-        $message->to($email)->subject('Please confirm your buy.');
-        $message->from(env("MAIL_FROM_ADDRESS"));
-        $message->setBody($rawtext, 'text/html');
-      });
+      } catch (\Exception $e) {}
     }
 
     // Save payment to a report
@@ -642,17 +663,25 @@ $emailError = 'no error';
     $paymentStatus = $transaction->status;
     $cardHolderName = $transaction->card_holder_name;
     $email = $transaction->email_address;
+    $paymentMethod = null;
     if( strtoupper($serviceType) == 'UAT' ) {
       $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
       $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
+      $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->paymentType];
     }
 
     // Create and send email
     if( $email != null && strlen($email) > 0 ) {
       try {
-        $mailingResult = Mail::to($email)->send(new SendEmail('failure'));
+        // Prepare main data
+        $transactionArray = $transaction->toArray();
+        $transactionArray['paymentMethod'] = $paymentMethod;
+        $dateTime = new DateTime($transactionArray['created_at']);
+        $transactionArray['created_at'] = $dateTime->format('Y-m-d H:i:s');
+
+        $mailingResult = Mail::to($email)->send(new SendEmail('failure', $transactionArray));
         $transaction->email_sent = 'sent';
-        Log::info('Email sent successfully');
+        Log::info('Payment failure email sent successfully');
         Log::info(json_encode($mailingResult));
       } catch (Swift_TransportException $transportException) {
         $transaction->email_sent = 'failed';
@@ -698,10 +727,12 @@ $emailError = 'no error';
     $paymentStatus = $transaction->status;
     $cardHolderName = $transaction->card_holder_name;
     $email = $transaction->email_address;
+    $paymentMethod = null;
     if( strtoupper($serviceType) == 'UAT' ) {
       try {
         $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
         $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
+        $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->paymentType];
       }
       catch (ErrorException $e){}
     }
@@ -709,9 +740,15 @@ $emailError = 'no error';
     // Create and send email
     if( $email != null && strlen($email) > 0 ) {
       try {
-        $mailingResult = Mail::to($email)->send(new SendEmail('cancel'));
+        // Prepare main data
+        $transactionArray = $transaction->toArray();
+        $transactionArray['paymentMethod'] = $paymentMethod;
+        $dateTime = new DateTime($transactionArray['created_at']);
+        $transactionArray['created_at'] = $dateTime->format('Y-m-d H:i:s');
+
+        $mailingResult = Mail::to($email)->send(new SendEmail('cancel', $transactionArray));
         $transaction->email_sent = 'sent';
-        Log::info('Email sent successfully');
+        Log::info('Payment cancellation email sent successfully');
         Log::info(json_encode($mailingResult));
       } catch (Swift_TransportException $transportException) {
         $transaction->email_sent = 'failed';
@@ -758,6 +795,90 @@ $emailError = 'no error';
       $productDescription,
       $controllerInternalId);
     return redirect($redirectUrl);
+  }
+
+  /**
+   * @throws CrossReferenceException
+   * @throws PdfReaderException
+   * @throws PdfParserException
+   * @throws PdfTypeException
+   * @throws FilterException
+   */
+  private function saveTransactionPDF( $orderNo ): string
+  {
+    // Create api request
+    $apiRequest = Request::create(env('KAISER_BACKEND').'/api/getReport', 'GET', ['orderNo' => $orderNo, 'detail' => 1]);
+    $apiRequest->headers->set('Authorization', env('API.KAISERPAYMENT.COM'));
+    $response = json_decode($this->getReport( $apiRequest )->getContent())->body->detail[0];
+
+    $date = date("Y-m-d H:i:s",strtotime($response->transactionDateTime));
+    $product_description = $response->productDescription;
+    $amount = number_format($response->transactionAmount->amount,2);
+    $qty = 1;
+    $total_amount = $amount;
+    $total_payment = $total_amount;
+    $acct = $response->creditCardDetails->cardNumber;
+    $card_holder_name = $response->creditCardDetails->cardHolderName;
+
+    require_once(app_path().'/includes/pdf/fpdf/fpdf.php');
+    require_once(app_path().'/includes/pdf/fpdi2/src/autoload.php');
+
+    $pdf = new Fpdi();
+    $pdf->setSourceFile(app_path().'/includes/pdf/tpl/e-sale-slip_template.pdf');
+    $templateId = $pdf->importPage(1);
+
+    $pdf->AddPage();
+    $pdf->useImportedPage($templateId, 0, 17, 210 , 268, false);
+    $pdf->SetTextColor(0, 0, 0);
+
+    // Card Brand
+    if( isset($this->PAYMENT_METHOD[$response->paymentType])) {
+      $pdf->SetFillColor(255, 255, 255);
+      $pdf->Rect(26, 130, 50, 6, 'F');
+      $pdf->SetFont('Arial','', 11);
+      $pdf->SetXY(25.5,133);
+      $pdf->Cell(1,1, $this->PAYMENT_METHOD[$response->paymentType], 0, 0, 'L');
+    }
+
+    //　OrderNo
+    $pdf->SetFont('Arial','B', 9);
+    $pdf->SetXY(49,64.8);
+    $pdf->Write(0, $orderNo);
+
+    //　Date
+    $pdf->SetXY(40,70.4);
+    $pdf->Write(0, $date);
+    //product_description
+    $pdf->SetXY(25.7,87.5);
+    $pdf->Write(0, $product_description);
+    //qty
+    $pdf->SetXY(111.7,87.5);
+    $pdf->Write(0, $qty);
+    //amount
+    $pdf->SetXY(126,84.5);
+    $pdf->Cell(22,5, '$'.$amount,0,0,'R');
+    //total_amount
+    $pdf->SetXY(147.7,84.5);
+    $pdf->Cell(22,5, '$'.$total_amount,0,0,'R');
+
+    $pdf->SetXY(147.7,113);
+    $pdf->Cell(22,5, '$'.$total_amount,0,0,'R');
+    // acct
+    $pdf->SetXY(58.7,139.6);
+    $pdf->Write(0, $acct);
+    // card_holder_name
+    $pdf->SetXY(87.7,151);
+    $pdf->Write(0, $card_holder_name);
+    // total_payment
+    $pdf->SetXY(147.7,160);
+    $pdf->Cell(22,5, '$'.$total_payment,0,0,'R');
+
+    $filename = app_path().'/includes/pdf/data/creditcard_'.$orderNo.'.pdf';
+
+    $pdf->Output($filename,'F');
+    sleep(1);
+
+    return $filename;
   }
 }
 

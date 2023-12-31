@@ -74,6 +74,7 @@
                 <th>Order No</th>
                 <th>Name</th>
                 <th style="width: 200px;">Email Address</th>
+                <th style="width: 50px;">Mail</th>
                 <th style="width: 150px;">Date</th>
                 <th>Amount</th>
                 <th style="width: 70px;">Fee Amt</th>
@@ -219,6 +220,25 @@
             },
           },
           {
+            data: 'email_sent',
+            render: function (data, type, row, meta) {
+              if (type === 'display') {
+                if (data === null) {
+                  return '';
+                } else if (data === 'draft') {
+                  return '<span style="color: darkgray"><span><i class="fas fa-envelope"></i></span></span>';
+                } else if (data === 'sent') {
+                  return '<span style="color: green"><span><i class="fas fa-envelope"></i></span><sup><i class="fas fa-check-circle"></i></sup></span>';
+                } else if (data === 'failed') {
+                  return '<span style="color: #d70000"><span><i class="fas fa-envelope"></i></span><sup><i class="fas fa-times-circle"></i></sup></span>';
+                } else {
+                  return data;
+                }
+              }
+              return data;
+            },
+          },
+          {
             data: 'created_at',
             render: function (data, type, row, meta) {
               if (type === 'display') {
@@ -276,7 +296,31 @@
             data: 'status',
             render: function (data, type, row, meta) {
               if (type === 'display') {
-                return data === null ? '' : data;
+                if (data === null) {
+                  return '';
+                } else if (data === 'Pre-stage') {
+                  return '<span class="badge" style="background-color: grey; color: white">'+ data +'</span>';
+                } else if (data === 'Initial') {
+                  return '<span class="badge" style="background-color: dodgerblue; color: white">'+ data +'</span>';
+                } else if (data === 'Approved') {
+                  return '<span class="badge" style="background-color: #008c00; color: white">'+ data +'</span>';
+                } else if (data === 'Voided') {
+                  return '<span class="badge" style="background-color: orange; color: white">'+ data +'</span>';
+                } else if (data === 'Settled') {
+                  return '<span class="badge" style="background-color: #00b900; color: white">'+ data +'</span>';
+                } else if (data === 'Refund') {
+                  return '<span class="badge" style="background-color: darkorchid; color: white">'+ data +'</span>';
+                } else if (data === 'Pending Payment') {
+                  return '<span class="badge" style="background-color: lightseagreen; color: white">'+ data +'</span>';
+                } else if (data === 'Rejected') {
+                  return '<span class="badge" style="background-color: #da0000; color: white">'+ data +'</span>';
+                } else if (data === 'Expired') {
+                  return '<span class="badge" style="background-color: darkred; color: white">'+ data +'</span>';
+                } else if (data === 'Cancelled') {
+                  return '<span class="badge" style="background-color: orange; color: white">'+ data +'</span>';
+                } else {
+                  return data;
+                }
               }
               return data;
             },

@@ -232,17 +232,24 @@ class Payment extends ActionRequest
         [
           "fieldName" => "partner",
           "fieldValue" => $host
-        ],
-        [
-          "fieldName" => "email",
-          "fieldValue" => $email
-        ],
-        [
-          "fieldName" => "name",
-          "fieldValue" => $name
         ]
       ]
     ];
+
+    // Include "email" and "name" field if it is provided and not empty
+    if ($email !== null && $email !== '') {
+      $request['customFieldList'][] = [
+        "fieldName" => "email",
+        "fieldValue" => $email
+      ];
+    }
+
+    if ($name !== null && $name !== '') {
+      $request['customFieldList'][] = [
+        "fieldName" => "name",
+        "fieldValue" => $name
+      ];
+    }
 
     $url = ActionRequest::getPaymentEndpoint() . "api/1.0/Payment/prePaymentUI";
     $headers = [

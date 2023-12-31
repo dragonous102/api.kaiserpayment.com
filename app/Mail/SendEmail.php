@@ -10,7 +10,9 @@ class SendEmail extends Mailable
 {
   use Queueable, SerializesModels;
 
-  public $template;  // Variable to store the template name
+  public $template;
+  public $transactionDetails;
+  public $pdfPath;
 
   /**
    * Create a new message instance.
@@ -18,9 +20,11 @@ class SendEmail extends Mailable
    * @param string $template
    * @return void
    */
-  public function __construct($template)
+  public function __construct($template, $transactionDetails = [], $pdfPath = null)
   {
     $this->template = $template;
+    $this->transactionDetails = $transactionDetails;
+    $this->pdfPath = $pdfPath;
   }
 
   /**
@@ -33,13 +37,31 @@ class SendEmail extends Mailable
     // Use a switch statement to set the view based on the template
     switch ($this->template) {
       case 'success':
-        return $this->view('emails.success');
+        $mail = $this->view('emails.success')
+          ->subject('KaiserPayment Transaction Alert: Payment Successful')
+          ->bcc(env('MAIL_BCC'), 'contact@ultimopay.io')
+          ->with('transactionDetails', $this->transactionDetails);
+
+        // Conditionally attach the PDF file
+        if ( $this->pdfPath ) {
+          $mail->attach($this->pdfPath, [
+            'as' => 'payment.pdf', // The name for the attached file
+            'mime' => 'application/pdf', // MIME type for the attachment
+          ]);
+        }
+        return $mail;
       case 'failure':
-        return $this->view('emails.failure');
+        return $this->view('emails.failure')
+          ->subject('KaiserPayment Transaction Alert: Payment Failed')
+          ->bcc(env('MAIL_BCC'), 'contact@ultimopay.io')
+          ->with('transactionDetails', $this->transactionDetails);
       case 'cancel':
-        return $this->view('emails.cancel');
+        return $this->view('emails.cancel')
+          ->subject('KaiserPayment Transaction Alert: Payment Cancelled')
+          ->bcc(env('MAIL_BCC'), 'contact@ultimopay.io')
+          ->with('transactionDetails', $this->transactionDetails);
       default:
-        return $this->view('emails.default');
+        return $this->view('emails.default')->with('transactionDetails', $this->transactionDetails);
     }
   }
 }

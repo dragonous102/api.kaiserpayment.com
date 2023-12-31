@@ -21,3 +21,4 @@ composer.lock
 /.idea/vcs.xml
 /doc/
 /.idea
+/app/includes/pdf/data/
