@@ -599,7 +599,9 @@ class PaymentController extends Controller
         $customFieldList = $report->body->detail[0]->CustomFieldList;
       }
     }
+    catch(ErrorException $e){}
     catch(Exception $e){}
+
 
     if( $email == null || strlen(trim($email)) == 0 ) {
       foreach( $customFieldList as $item ){
@@ -685,6 +687,7 @@ class PaymentController extends Controller
         $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->PaymentType];
       }
     }
+    catch(ErrorException $e){}
     catch(Exception $e){}
 
     // Create and send email
@@ -756,6 +759,7 @@ class PaymentController extends Controller
         $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->PaymentType];
       }
     }
+    catch(ErrorException $e){}
     catch (Exception $e){}
 
     // Create and send email
