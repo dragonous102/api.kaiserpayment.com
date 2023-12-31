@@ -671,17 +671,19 @@ class PaymentController extends Controller
     $email = $transaction->email_address;
     $paymentMethod = null;
 
-    if( strtoupper($serviceType) == 'UAT' ) {
-      $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
-      $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
-      $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->paymentType];
+    try {
+      if (strtoupper($serviceType) == 'UAT') {
+        $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
+        $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
+        $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->paymentType];
+      } else {
+        //return json_encode($report);
+        $paymentStatus = $report->body->detail[0]->PaymentStatusInfo->PaymentStatus;
+        $cardHolderName = $report->body->detail[0]->CreditCardDetails->CardHolderName;
+        $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->PaymentType];
+      }
     }
-    else{
-      //return json_encode($report);
-      $paymentStatus = $report->body->detail[0]->PaymentStatusInfo->PaymentStatus;
-      $cardHolderName = $report->body->detail[0]->CreditCardDetails->CardHolderName;
-      $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->PaymentType];
-    }
+    catch(Exception $e){}
 
     // Create and send email
     if( $email != null && strlen($email) > 0 ) {
