@@ -226,10 +226,10 @@ class Payment extends ActionRequest
         "amount" => $amount
       ],
       "notificationURLs" => [
-        "confirmationURL" => "$baseUrl/payment-confirmation",
-        "failedURL" => "$baseUrl/payment-failed",
-        "cancellationURL" => "$baseUrl/payment-cancellation",
-        "backendURL" => "$baseUrl/payment-backend"
+        "confirmationURL" => "$baseUrl/kaiser-payment-confirmation",
+        "failedURL" => "$baseUrl/kaiser-payment-failed",
+        "cancellationURL" => "$baseUrl/kaiser-payment-cancellation",
+        "backendURL" => "$baseUrl/kaiser-payment-backend"
       ],
       "customFieldList" => [
         [

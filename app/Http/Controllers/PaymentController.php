@@ -422,7 +422,7 @@ class PaymentController extends Controller
               $response = $inquiry->ExecuteWithOrderNos($uncompletedOrderNo_PROD);
             }
             catch (GuzzleException $e){
-              echo 'exception';
+
             }
             if( $response != null ){
               $respData = json_decode($response, true);
@@ -592,6 +592,12 @@ class PaymentController extends Controller
       $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->paymentType];
       $customFieldList = $report->body->detail[0]->customFieldList;
     }
+    else {
+      $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
+      $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
+      $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->paymentType];
+      $customFieldList = $report->body->detail[0]->CustomFieldList;
+    }
 
     if( $email == null || strlen(trim($email)) == 0 ) {
       foreach( $customFieldList as $item ){
@@ -664,10 +670,16 @@ class PaymentController extends Controller
     $cardHolderName = $transaction->card_holder_name;
     $email = $transaction->email_address;
     $paymentMethod = null;
+
     if( strtoupper($serviceType) == 'UAT' ) {
       $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
       $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
       $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->paymentType];
+    }
+    else{
+      $paymentStatus = $report->body->detail[0]->PaymentStatusInfo->PaymentStatus;
+      $cardHolderName = $report->body->detail[0]->CreditCardDetails->CardHolderName;
+      $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->PaymentType];
     }
 
     // Create and send email
@@ -729,12 +741,14 @@ class PaymentController extends Controller
     $email = $transaction->email_address;
     $paymentMethod = null;
     if( strtoupper($serviceType) == 'UAT' ) {
-      try {
-        $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
-        $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
-        $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->paymentType];
-      }
-      catch (ErrorException $e){}
+      $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
+      $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
+      $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->paymentType];
+    }
+    else{
+      $paymentStatus = $report->body->detail[0]->PaymentStatusInfo->PaymentStatus;
+      $cardHolderName = $report->body->detail[0]->CreditCardDetails->CardHolderName;
+      $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->PaymentType];
     }
 
     // Create and send email
