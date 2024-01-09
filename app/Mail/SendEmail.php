@@ -39,7 +39,7 @@ class SendEmail extends Mailable
       case 'success':
         $mail = $this->view('emails.success')
           ->subject('KaiserPayment Transaction Alert: Payment Successful')
-          ->bcc(env('MAIL_BCC'), 'contact@ultimopay.io')
+          ->bcc(env('MAIL_BCC'), 'alert@kaiserpayment.com')
           ->with('transactionDetails', $this->transactionDetails);
 
         // Conditionally attach the PDF file
@@ -53,12 +53,12 @@ class SendEmail extends Mailable
       case 'failure':
         return $this->view('emails.failure')
           ->subject('KaiserPayment Transaction Alert: Payment Failed')
-          ->bcc(env('MAIL_BCC'), 'contact@ultimopay.io')
+          ->bcc(env('MAIL_BCC'), 'alert@kaiserpayment.com')
           ->with('transactionDetails', $this->transactionDetails);
       case 'cancel':
         return $this->view('emails.cancel')
           ->subject('KaiserPayment Transaction Alert: Payment Cancelled')
-          ->bcc(env('MAIL_BCC'), 'contact@ultimopay.io')
+          ->bcc(env('MAIL_BCC'), 'alert@kaiserpayment.com')
           ->with('transactionDetails', $this->transactionDetails);
       default:
         return $this->view('emails.default')->with('transactionDetails', $this->transactionDetails);
