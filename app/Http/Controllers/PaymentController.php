@@ -742,6 +742,12 @@ class PaymentController extends Controller
     $dbPartner = Partner::find($transaction->partner_id);
     $serviceType = $dbPartner->service_type;
 
+    Log::info('kaiserPaymentCancellation api called');
+    Log::info('kaiserPaymentCancellation api $orderNo: '.$orderNo);
+    Log::info('kaiserPaymentCancellation api $productDescription: '.$productDescription);
+    Log::info('kaiserPaymentCancellation api $controllerInternalId: '.$controllerInternalId);
+    Log::info('kaiserPaymentCancellation api $serviceType: '.$serviceType);
+
     // Get a report
     $report = json_decode($this->getReport( $apiRequest )->getContent());
     $paymentStatus = $transaction->status;
@@ -759,8 +765,12 @@ class PaymentController extends Controller
         $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->PaymentType];
       }
     }
-    catch(ErrorException $e){}
-    catch (Exception $e){}
+    catch(ErrorException $e){
+      Log::error('ErrorException in kaiserPaymentCancellation: '. $e->getMessage());
+    }
+    catch (Exception $e){
+      Log::error('Exception in kaiserPaymentCancellation: '. $e->getMessage());
+    }
 
     // Create and send email
     if( $email != null && strlen($email) > 0 ) {
@@ -777,10 +787,10 @@ class PaymentController extends Controller
         Log::info(json_encode($mailingResult));
       } catch (Swift_TransportException $transportException) {
         $transaction->email_sent = 'failed';
-        Log::error('SMTP Exception: ' . $transportException->getMessage());
+        Log::error('SMTP Exception in emailing: ' . $transportException->getMessage());
       } catch (Exception $exception) {
         $transaction->email_sent = 'failed';
-        Log::error('Exception: ' . $exception->getMessage());
+        Log::error('Exception in emailing: ' . $exception->getMessage());
       }
     }
 
@@ -795,6 +805,7 @@ class PaymentController extends Controller
       $orderNo,
       $productDescription,
       $controllerInternalId);
+    Log::info('kaiserPaymentCancellation api redirect to: '.$redirectUrl);
     return redirect($redirectUrl);
   }
 
