@@ -5,6 +5,7 @@ use Carbon\Carbon;
 use Exception;
 use App\includes\JDB_PROD\ActionRequest;
 use App\includes\JDB_PROD\SecurityData;
+use Illuminate\Support\Facades\Log;
 use Jose\Component\Checker\InvalidClaimException;
 use Jose\Component\Checker\MissingMandatoryClaimException;
 use Webpatser\Uuid\Uuid;
@@ -268,6 +269,8 @@ class Payment extends ActionRequest
       "nbf" => $now->unix(),
       "exp" => $now->addHour()->unix(),
     ];
+
+    Log::info('ExecuteJose() PROD $payload: ' . json_encode($payload));
 
     $stringPayload = json_encode($payload);
     $signingKey = $this->GetPrivateKey(SecurityData::$MerchantSigningPrivateKey);
