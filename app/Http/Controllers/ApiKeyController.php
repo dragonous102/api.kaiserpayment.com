@@ -302,7 +302,8 @@ class ApiKeyController extends Controller
 
     try {
       $success = true;
-      Artisan::call('config:cache');
+      Artisan::call('config:clear');
+
       $output1 = Artisan::output();
       $message = "The API KEY was applied to the Kaiser server successfully. Check the API KEY working status. ".$output1;
     } catch (\Exception $e) {

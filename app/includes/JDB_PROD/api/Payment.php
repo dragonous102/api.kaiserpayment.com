@@ -270,7 +270,7 @@ class Payment extends ActionRequest
       "exp" => $now->addHour()->unix(),
     ];
 
-    Log::info('ExecuteJose() PROD $payload: ' . json_encode($payload));
+    //Log::info('ExecuteJose() PROD $payload: ' . json_encode($payload));
 
     $stringPayload = json_encode($payload);
     $signingKey = $this->GetPrivateKey(SecurityData::$MerchantSigningPrivateKey);
