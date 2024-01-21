@@ -219,11 +219,13 @@ class PaymentController extends Controller
     }
     catch (GuzzleException $e) {
       $code = 500;
-      $message = "Report Error 9: ".$e->getMessage();
+      $message = "Report Error 9: ".$e->getTraceAsString();
+      Log::error('Report Error 9: GuzzleException: ' . $e->getTraceAsString());
     }
     catch (\Exception $e) {
       $code = 500;
       $message = "Report Error 10: ".$e->getMessage();
+      Log::error('Report Error 10: Exception: ' . $e->getTraceAsString());
     }
     return response()->json([
       'code' => $code,
