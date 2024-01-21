@@ -757,11 +757,13 @@ class PaymentController extends Controller
     try {
       if (strtoupper($serviceType) == 'UAT') {
         $paymentStatus = $report->body->detail[0]->paymentStatusInfo->paymentStatus;
-        $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
+        if($report->body->detail[0]->creditCardDetails != null)
+          $cardHolderName = $report->body->detail[0]->creditCardDetails->cardHolderName;
         $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->paymentType];
       } else {
         $paymentStatus = $report->body->detail[0]->PaymentStatusInfo->PaymentStatus;
-        $cardHolderName = $report->body->detail[0]->CreditCardDetails->CardHolderName;
+        if($report->body->detail[0]->CreditCardDetails != null)
+          $cardHolderName = $report->body->detail[0]->CreditCardDetails->CardHolderName;
         $paymentMethod = $this->PAYMENT_METHOD[$report->body->detail[0]->PaymentType];
       }
     }

@@ -192,10 +192,7 @@ class Payment extends ActionRequest
     $orderNo = $now->getPreciseTimestamp(3);
 
     // Prepare urls
-    if( $host == "localhost" )
-      $baseUrl = "http://localhost:8000";
-    else
-      $baseUrl = "https://".$host;
+    $baseUrl = env('KAISER_BACKEND');
 
     $request = [
       "apiRequest" => [
