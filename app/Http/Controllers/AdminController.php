@@ -25,13 +25,9 @@ class AdminController extends Controller
     $credentials = $request->only('name', 'password');
 
     if (Auth::attempt($credentials)) {
-      Log::info('Redirecting to page.home in AdminController');
-      Log::info('After existing logic'); // Add this line
       return redirect()->route('page.home');
     }
     else{
-      Log::info('Redirecting to page.login in AdminController');
-      Log::info('After existing logic'); // Add this line
       return redirect()->route('page.login');
     }
   }

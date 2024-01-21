@@ -417,7 +417,7 @@ class FireBlocksController extends Controller
     else{
       $event = $webhookData['type'];
       if(!isset($event) || ($event != 'TRANSACTION_CREATED' && $event != 'TRANSACTION_STATUS_UPDATED')){
-        Log::info("Received, but not transaction event: $event");
+        //Log::info("Received, but not transaction event: $event");
         return response()->json([
           'success' => "Received, but not transaction event: $event",
         ])->setStatusCode(200);
@@ -427,7 +427,7 @@ class FireBlocksController extends Controller
         $assetId = $webhookData['data']['assetId'];
         $dstType = $webhookData['data']['destination']['type'];
         if( $dstType != 'VAULT_ACCOUNT') {
-          Log::info("Received, but not for vault account: $dstType");
+          //Log::info("Received, but not for vault account: $dstType");
           return response()->json([
             'success' => "Received, but not for vault account: $dstType",
           ])->setStatusCode(200);
@@ -453,7 +453,7 @@ class FireBlocksController extends Controller
           else{
             $predictAmount = FbDepositOrder::where('id', $fbDepositOrderAddress->deposit_order_id)->value('amount');
             if( $fbDepositOrderAddress == null || $predictAmount == null ){
-              Log::info("Received, but not for kaiser account id or asset id: $vaultAccountId, $assetId");
+              //Log::info("Received, but not for kaiser account id or asset id: $vaultAccountId, $assetId");
               return response()->json([
                 'success' => "Received, but not for kaiser account id or asset id: $vaultAccountId, $assetId",
               ])->setStatusCode(200);
