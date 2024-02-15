@@ -20,6 +20,11 @@ Route::get('/payment-failed', 'JdbController@failed')->name('page.cancellation')
 Route::get('/payment-cancellation', 'JdbController@cancellation')->name('page.failed');
 Route::get('/payment-backend', 'JdbController@backend')->name('page.backend');
 
+Route::get('/kaiser-payment-confirmation', 'PaymentController@kaiserPaymentConfirmation')->name('kaiserPaymentConfirmation');
+Route::get('/kaiser-payment-failed', 'PaymentController@kaiserPaymentFailed')->name('kaiserPaymentFailed');
+Route::get('/kaiser-payment-cancellation', 'PaymentController@kaiserPaymentCancellation')->name('kaiserPaymentCancellation');
+Route::get('/kaiser-payment-backend', 'PaymentController@kaiserPaymentBackend')->name('kaiserPaymentBackend');
+
 Route::middleware(['auth'])->group(function () {
 
   // Protected routes
@@ -30,11 +35,6 @@ Route::middleware(['auth'])->group(function () {
   Route::get('/admin/home', 'JdbController@payment')->name('page.home');
   Route::get('/admin/paymentPage', 'JdbController@payment')->name('page.payment');
   Route::get('/admin/reportPage', 'JdbController@report')->name('page.report');
-
-  Route::get('/kaiser-payment-confirmation', 'PaymentController@kaiserPaymentConfirmation')->name('kaiserPaymentConfirmation');
-  Route::get('/kaiser-payment-failed', 'PaymentController@kaiserPaymentFailed')->name('kaiserPaymentFailed');
-  Route::get('/kaiser-payment-cancellation', 'PaymentController@kaiserPaymentCancellation')->name('kaiserPaymentCancellation');
-  Route::get('/kaiser-payment-backend', 'PaymentController@kaiserPaymentBackend')->name('kaiserPaymentBackend');
 
   Route::get('/admin/apikey', 'ApiKeyController@showDashboard')->name('page.apikey.dashboard');
   Route::post('/admin/apikey-add-partner', 'ApiKeyController@addNewPartner')->name('apikey.add.partner');
